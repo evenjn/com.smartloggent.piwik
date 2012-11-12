@@ -1,3 +1,22 @@
+<script>
+function showColumnInfo(column) 
+{literal}{{/literal}
+	{foreach from=$dataTableColumns item=column name=headjs}
+		{if !$smarty.foreach.headjs.first}
+			hideColumnInfo({$column});
+		{/if}
+	{/foreach}
+	id = '#colunmInfo' + column.toString();
+	{literal}$(id).fadeIn();{/literal}
+{literal}}{/literal}
+
+function hideColumnInfo(column) 
+{literal}{{/literal}
+	id = '#colunmInfo' + column.toString();
+	{literal}$(id).fadeOut();{/literal}
+{literal}}{/literal}
+</script>
+
 <div id="{$properties.uniqueId}" class="dataTable">
 	<div class="reportDocumentation">
 		{if !empty($reportDocumentation)}<p>{$reportDocumentation}</p>{/if}
@@ -19,7 +38,7 @@
 			<thead>
 			<tr>
 			{foreach from=$dataTableColumns item=column name=head}
-				<th class="sortable {if $smarty.foreach.head.first}first{elseif $smarty.foreach.head.last}last{/if}" id="{$column}">
+				<th onClick="{if !$smarty.foreach.head.first} showColumnInfo('{$column}'); {/if}" class="{if $smarty.foreach.head.first}first{elseif $smarty.foreach.head.last}last{/if}" id="{$properties.uniqueId}_{$column}">
 					{if !empty($columnDocumentation[$column])}
 						<div class="columnDocumentation">
 							<div class="columnDocumentationTitle">

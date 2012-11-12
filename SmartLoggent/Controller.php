@@ -1,10 +1,73 @@
 <?php
 class Piwik_SmartLoggent_Controller extends Piwik_Controller
 {
-	public function searchPhraseOverview()
+
+	private $array_metrics = array(
+		Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
+	,	Piwik_SmartLoggent_API::INDEX_NB_VISITS
+	,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+	,	Piwik_SmartLoggent_API::INDEX_FR_QUERIES
+	,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS
+	,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+	,	Piwik_SmartLoggent_API::INDEX_FR_CLICKS
+	,	Piwik_SmartLoggent_API::INDEX_AVG_CLICKS
+	,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY
+	,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY
+	);
+	
+	private $array_metrics_titles = array(
+		Piwik_SmartLoggent_API::INDEX_AVG_CLICKS => 'LOC_SL_Column_AVG_CLICKS'
+	,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS => 'LOC_SL_Column_AVG_RESULTS'
+	,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY => 'LOC_SL_Column_CLICK_PROBABILITY'
+	,	Piwik_SmartLoggent_API::INDEX_FR_CLICKS => 'LOC_SL_Column_FR_CLICKS'
+	,	Piwik_SmartLoggent_API::INDEX_FR_QUERIES => 'LOC_SL_Column_FR_QUERIES'
+	,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS => 'LOC_SL_Column_NB_CLICKS'
+	,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES => 'LOC_SL_Column_NB_QUERIES'
+	,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY => 'LOC_SL_Column_WEIGHTED_CLICK_PROBABILITY'
+	,	Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS => 'General_ColumnNbUniqVisitors'
+	,	Piwik_SmartLoggent_API::INDEX_NB_VISITS => 'General_ColumnNbVisits'
+	);
+	
+	public function overview()
+	{
+		$view = new Piwik_View('SmartLoggent/templates/overview.tpl');
+		
+		$view1 = Piwik_ViewDataTable::factory('graphEvolution');
+		$view1->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view1->setColumnsToDisplay( Piwik_SmartLoggent_API::INDEX_NB_VISITS);
+
+		echo $view->render();
+		
+		$this->renderView($view1);
+	}
+	
+	public function searchPhrase()
 	{
 		$view = new Piwik_View('SmartLoggent/templates/searchPhraseOverview.tpl');
 		$view->searchPhrase = $this->getSearchPhrase(true);
+		
+		$searchPhraseMetrics = array();
+		$detailcharts = array();
+		
+		foreach ($this->array_metrics as $metric) {
+			$result_searchPhraseMetrics = $this->getSearchPhraseMetricGraph($metric);
+			$result_detail_metric_chart = $this->getSearchPhraseMetricGraph($metric);
+			$result_detail_evolution_chart = $this->getSearchPhraseMetricGraph($metric);
+			
+			$searchPhraseMetrics[] = $result_searchPhraseMetrics;
+			$detailcharts[$metric]['chartmetric'] = $result_detail_metric_chart;
+			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
+			$detailcharts[$metric]['metric'] = $metric;
+			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
+				
+		}
+		
+		$view->searchPhraseMetrics = $searchPhraseMetrics; 
+		$view->searchPhraseEvolution = $this->getSearchPhraseEvolution();
+		$view->searchPhrasePie = $this->getSearchPhasePie();
+		$view->searchPhraseTagCloud = $this->getSearchPhaseTagCloud();
+		$view->detailcharts = $detailcharts;
+		
 		echo $view->render();
 	}
 	
@@ -16,11 +79,64 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		echo $view->render();
 	}
 	
-	public function getSearchPhrase($fetch=false, $limit=20)
+	public function getSearchPhrase($fetch=false, $limit=20, $metric=Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY)
 	{
 		$view = Piwik_ViewDataTable::factory();
 		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
-		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit);
+		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit, $metric);		
+			
+		return $result;
+	}
+
+	public function getSearchPhraseMetricGraph($metric=-1)
+	{
+		static $mt;
+		if ($metric != -1)
+			$mt = $metric;
+		
+		$view = Piwik_ViewDataTable::factory('graphVerticalBar');
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase' );
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array('label', $mt));
+		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
+		$view->setSortedColumn($mt, 'desc');
+		$view->disableFooter();
+		$view->setAxisYUnit($mt);
+		$view->setUniqueIdViewDataTable ("graph_gn_" . $mt);
+		$view->setTemplate("SmartLoggent/templates/SearchPhraseGraphMetric.tpl");
+		$result = $this->renderView($view, true);
+		return $result; 
+	}
+
+	public function getSearchPhraseEvolution()
+	{
+		$view = Piwik_ViewDataTable::factory('graphEvolution');
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase' );
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array(Piwik_SmartLoggent_API::INDEX_NB_VISITS));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS,  Piwik_Translate($this->array_metrics_titles[Piwik_SmartLoggent_API::INDEX_NB_VISITS]));
+		$view->disableFooter();
+		$view->setLimit(2);
+		$view->setUniqueIdViewDataTable ("graph_gn_evolution");
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+
+	public function getSearchPhasePie()
+	{
+		$view = Piwik_ViewDataTable::factory('graphPie');
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhraseDistributionData' );
+		$view->setUniqueIdViewDataTable ("graph_gn_distrib");
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+
+	public function getSearchPhaseTagCloud()
+	{
+		$view = Piwik_ViewDataTable::factory('cloud');
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhraseTagCloudData' );
+		$view->setUniqueIdViewDataTable ("graph_gn_cloud");
+		$result = $this->renderView($view, true);
 		return $result;
 	}
 	
@@ -32,21 +148,9 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 	
-	public function configureUsualTable($view, $labelLocalization, $fetch=false, $limit=20)
+	public function configureUsualTable($view, $labelLocalization, $fetch=false, $limit=20, $sortedColumn=Piwik_SmartLoggent_API::INDEX_NB_QUERIES)
 	{
-		$view->setColumnsToDisplay(array(
-			'label'
-		,	Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
-		,	Piwik_SmartLoggent_API::INDEX_NB_VISITS
-		,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
-		,	Piwik_SmartLoggent_API::INDEX_FR_QUERIES
-		,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS
-		,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
-		,	Piwik_SmartLoggent_API::INDEX_FR_CLICKS
-		,	Piwik_SmartLoggent_API::INDEX_AVG_CLICKS
-		,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY
-		,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY
-		));
+		$view->setColumnsToDisplay(array_merge(array('label'), $this->array_metrics));
 
 		$view->setColumnTranslation('label', Piwik_Translate($labelLocalization));
 		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_AVG_CLICKS, Piwik_Translate('LOC_SL_Column_AVG_CLICKS'));
@@ -59,8 +163,8 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY, Piwik_Translate('LOC_SL_Column_WEIGHTED_CLICK_PROBABILITY'));
 		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS, Piwik_Translate('General_ColumnNbUniqVisitors'));
 		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS, Piwik_Translate('General_ColumnNbVisits'));
-
-		$view->setSortedColumn(Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'desc');
+		
+		$view->setSortedColumn($sortedColumn, 'desc');
 		$view->disableShowAllViewsIcons();
 		$view->disableShowAllColumns();
 		$view->setLimit($limit);

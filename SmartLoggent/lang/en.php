@@ -4,8 +4,14 @@ $translations = array(
 		
 	// menus
 	,	'LOC_SL_Menu' => 'SmartLoggent'
-	,	'LOC_SL_SubmenuClasses' => 'Classes'
+	,	'LOC_SL_SubmenuOverview' => 'Overview'
 	,	'LOC_SL_SubmenuSearchPhrases' => 'Search Phrases'
+	,	'LOC_SL_SubmenuClasses' => 'Classes'
+	,	'LOC_SL_SubmenuClustering' => 'Clustering'
+	,	'LOC_SL_SubmenuNamedEntities' => 'Named Entities'
+	,	'LOC_SL_SubmenuNamedEntityTypes' => 'Named Entites Types'
+	,	'LOC_SL_SubmenuSearchWords' => 'Search Words'													
+	,	'LOC_SL_SubmenuLanguages' => 'Languages'
 		
 	// segments
 	,	'LOC_SL_Segment_Language' => 'Language'
@@ -45,6 +51,8 @@ $translations = array(
 	,	'LOC_SL_SearchPhraseOverviewTableDescription' => 'This table shows an overview of Search Phrases.' 
 
 	// page Class Overview
+	,	'LOC_SL_OverviewPageTitle' => 'Overview'
+	,	'LOC_SL_OverviewDescription' => 'SmartLoggent Overview'		
 	,	'LOC_SL_ClassOverviewPageTitle' => 'Overview of Classes'
 	,	'LOC_SL_ClassOverviewTableDescription' => 'This table shows an overview of Classes.'
 	, 'LOC_SL_classEvolution_ReportDocumentation' => 'VALUE_LOC_SL_classEvolution_ReportDocumentation' 

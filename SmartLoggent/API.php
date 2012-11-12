@@ -106,6 +106,38 @@ class Piwik_SmartLoggent_API
 		return $this->get($idSite, $period, $date, $segment, self::DIM_SEARCHPHRASE);
 	}
 	
+	public function getSearchPhraseDistributionData($idSite, $period, $date, $segment = false)
+	{
+		// TODO @CELI: return a dataTable for pie graph ([8])
+		
+		$queryPieDistrib = array(
+				'thents' => 0.382,
+				'hundreds' => 0.949,
+				'thousands' => 1.00,
+		);
+
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($queryPieDistrib);
+		return $dataTable;
+		
+	}
+	
+	public function getSearchPhraseTagCloudData($idSite, $period, $date, $segment = false)
+	{
+		// TODO @CELI: return a dataTable for tag cloud graph ([9])
+	
+		$queryPieDistrib = array(
+				'word1' => 0.382,
+				'word2' => 0.949,
+				'word3' => 1.00,
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($queryPieDistrib);
+		return $dataTable;
+	
+	}
+	
 	public function getSearchWord($idSite, $period, $date, $segment = false)
 	{
 		return $this->get($idSite, $period, $date, $segment, self::DIM_SEARCHWORD);

@@ -179,8 +179,14 @@ class Piwik_SmartLoggent extends Piwik_Plugin
 		Piwik_AddMenu('LOC_SL_Menu', '', array('module' => 'SmartLoggent', 'action' => 'searchPhraseOverview'), true , 30);
 		$subMenus = array
 		(
-			'LOC_SL_SubmenuSearchPhrases' => 'searchPhraseOverview',
-			'LOC_SL_SubmenuClasses' => 'classOverview',
+			'LOC_SL_SubmenuOverview' => 'Overview',	
+			'LOC_SL_SubmenuSearchPhrases' => 'searchPhrase',
+			'LOC_SL_SubmenuClasses' => 'class',
+			'LOC_SL_SubmenuClustering' => 'clustering',
+			'LOC_SL_SubmenuNamedEntities' => 'namedEntities',
+			'LOC_SL_SubmenuNamedEntityTypes' => 'namedEntityType',
+			'LOC_SL_SubmenuSearchWords' => 'searchWords',
+			'LOC_SL_SubmenuLanguages' => 'languages',
 		);
 		$order = 1;
 		foreach($subMenus as $subMenu => $action) 
