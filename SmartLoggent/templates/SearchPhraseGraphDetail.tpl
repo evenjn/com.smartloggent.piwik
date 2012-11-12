@@ -1,4 +1,4 @@
-<div style="width: 600px; height: 250px;" id="{$properties.uniqueId}" class="dataTable">
+<div style="width: 650px; height: 250px;" id="{$properties.uniqueId}" class="dataTable">
 	
 	<div class="reportDocumentation">
 		{if !empty($reportDocumentation)}<p>{$reportDocumentation}</p>{/if}
@@ -10,7 +10,7 @@
 	{if $isDataAvailable}
 		
 		<div class="jqplot-{$graphType}" style="padding-left: 6px;">
-			<div id="{$chartDivId}" class="piwik-graph" style="position: relative; width: 600px; height: 250px;"></div>
+			<div id="{$chartDivId}" class="piwik-graph" style="position: relative; width: 650px; height: 250px;"></div>
 		</div>
 		
 		<script type="text/javascript">

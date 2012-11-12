@@ -1,4 +1,8 @@
 <script>
+{literal}
+
+{/literal}
+
 function showColumnInfo(column) 
 {literal}{{/literal}
 	{foreach from=$dataTableColumns item=column name=headjs}

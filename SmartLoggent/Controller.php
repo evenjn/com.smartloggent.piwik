@@ -51,8 +51,8 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		
 		foreach ($this->array_metrics as $metric) {
 			$result_searchPhraseMetrics = $this->getSearchPhraseMetricGraph($metric);
-			$result_detail_metric_chart = $this->getSearchPhraseMetricGraph($metric);
-			$result_detail_evolution_chart = $this->getSearchPhraseMetricGraph($metric);
+			$result_detail_metric_chart = $this->getSearchPhraseDetailMetricGraph($metric);
+			$result_detail_evolution_chart = $this->getSearchPhraseDetailEvolution($metric);
 			
 			$searchPhraseMetrics[] = $result_searchPhraseMetrics;
 			$detailcharts[$metric]['chartmetric'] = $result_detail_metric_chart;
@@ -88,7 +88,7 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 
-	public function getSearchPhraseMetricGraph($metric=-1)
+	public function getSearchPhraseMetricGraph($metric=-1, $limit=3)
 	{
 		static $mt;
 		if ($metric != -1)
@@ -108,6 +108,26 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result; 
 	}
 
+	public function getSearchPhraseDetailMetricGraph($metric=-1)
+	{
+		static $mt;
+		if ($metric != -1)
+			$mt = $metric;
+	
+		$view = Piwik_ViewDataTable::factory('graphVerticalBar');
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase' );
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array('label', $mt));
+		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
+		$view->setSortedColumn($mt, 'desc');
+		$view->disableFooter();
+		$view->setAxisYUnit($mt);
+		$view->setUniqueIdViewDataTable ("graph_gn_detail_" . $mt);
+		$view->setTemplate("SmartLoggent/templates/SearchPhraseGraphDetail.tpl");
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+	
 	public function getSearchPhraseEvolution()
 	{
 		$view = Piwik_ViewDataTable::factory('graphEvolution');
@@ -122,6 +142,20 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 
+	public function getSearchPhraseDetailEvolution()
+	{
+		$view = Piwik_ViewDataTable::factory('graphEvolution');
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase' );
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array(Piwik_SmartLoggent_API::INDEX_NB_VISITS));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS,  Piwik_Translate($this->array_metrics_titles[Piwik_SmartLoggent_API::INDEX_NB_VISITS]));
+		$view->disableFooter();
+		$view->setLimit(5);
+		$view->setUniqueIdViewDataTable ("graph_gn_detail_evolution" . floor(rand(0,10000)));
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+	
 	public function getSearchPhasePie()
 	{
 		$view = Piwik_ViewDataTable::factory('graphPie');

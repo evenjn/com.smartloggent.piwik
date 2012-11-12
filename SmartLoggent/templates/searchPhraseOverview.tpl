@@ -1,11 +1,14 @@
+
 <link rel="stylesheet" type="text/css" href="plugins/SmartLoggent/templates/sl.css" />
 {literal}
 <script>
+
 function showDiv(id) {
 	$('.paneldivMain').fadeOut();
 	$('.paneldiv').fadeOut();
 	$('#' + id).fadeIn();
 }
+
 </script>
 {/literal}
 
@@ -53,13 +56,17 @@ function showDiv(id) {
 
 {foreach from=$detailcharts item=chart name=headdiv}
 {if !$smarty.foreach.headdiv.first}
-<div style='display: none; background: #FFFFFF; position: absolute; top: 220px; z-index: 99; left: 120px; width: 900px; height: 600px; -moz-border-radius: 15px; border-radius: 15px; border: 3px solid #aaaaaa;' id='colunmInfo{$chart.metric}'>
+<div id='colunmInfo{$chart.metric}' class='columndiv'>
 <h2>Metric: {$chart.title}</h2>
 <hr>
 {$chart.chartmetric}
 <br/>
 {$chart.chartevolution}
-<a href="javascript:hideColumnInfo({$chart.metric});">OK</a>
+<center>
+<a href="javascript:hideColumnInfo({$chart.metric});">CLOSE THIS WINDOW</a>
+</center>
 </div>
 {/if}
 {/foreach}
+
+
