@@ -6,6 +6,7 @@ $translations = array(
 	,	'LOC_SL_Menu' => 'SmartLoggent'
 	,	'LOC_SL_SubmenuOverview' => 'Overview'
 	,	'LOC_SL_SubmenuSearchPhrases' => 'Search Phrases'
+	,	'LOC_SL_SubmenuSingleSearchPhrases' => 'Single Search Phrases'
 	,	'LOC_SL_SubmenuClasses' => 'Classes'
 	,	'LOC_SL_SubmenuClustering' => 'Clustering'
 	,	'LOC_SL_SubmenuNamedEntities' => 'Named Entities'

@@ -44,6 +44,13 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 	public function searchPhrase()
 	{
 		$view = new Piwik_View('SmartLoggent/templates/searchPhraseOverview.tpl');
+		
+		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
+																				  'action' => 'index',																				  
+																				 ));
+		$urlSl = Piwik_Url::getCurrentQueryStringWithParametersModified(array('action' => 'singleSearchPhrase'));
+		$view->singleSearchPhraseUrl = $urlIndex . "#" . substr($urlSl, 1);
+		
 		$view->searchPhrase = $this->getSearchPhrase(true);
 		
 		$searchPhraseMetrics = array();
@@ -71,6 +78,20 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		echo $view->render();
 	}
 	
+	public function singleSearchPhrase() {
+		$view = new Piwik_View('SmartLoggent/templates/SingleSearchPhrase.tpl');
+		$phrase = Piwik_Common::getRequestVar("phrase");
+		$view->phrase = $phrase;
+		$view->searchPhraseEvolution = $this->getSearchPhraseEvolution('getSingleSearchEvolutionData', array('searchPhrase'=>$phrase));
+		$view->searchPhraseNamedEntities = $this->getSingleSearchPhraseData(true, 10, $phrase, 'getSingleSearchPhraseNamedEntitiesData');
+		$view->searchPhraseClass = $this->getSingleSearchPhraseData(true, 10, $phrase, 'getSingleSearchPhraseClassData');
+		$view->searchPhraseCluster = $this->getSingleSearchPhraseData(true, 10, $phrase, 'getSingleSearchPhraseClusterData');
+		$view->searchPhraseNaturalSearch = $this->getSingleSearchPhraseData(true, 10, $phrase, 'getSingleSearchPhraseNaturalSearchData');
+		$view->searchPhrasePie = $this->getSingleSearchPhasePie($phrase);
+		
+		echo $view->render();
+	}
+
 	public function classOverview()
 	{
 		$view = new Piwik_View('SmartLoggent/templates/classOverview.tpl');
@@ -81,13 +102,56 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 	
 	public function getSearchPhrase($fetch=false, $limit=20, $metric=Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY)
 	{
-		$view = Piwik_ViewDataTable::factory();
+		$view = Piwik_ViewDataTable::factory();		
 		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
 		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit, $metric);		
 			
 		return $result;
 	}
+	
+	public function getSingleSearchPhraseData($fetch=false, $limit=20, $searchPhrase=-1, $source=-1) {
 
+		static $sf;
+		static $src;
+		if ($searchPhrase != -1) $sf = $searchPhrase;
+		if ($source != -1) $src = $source;
+		
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+
+		$dataTable = Piwik_SmartLoggent_API::$src($idSite, $period, $date, $segment, array('searchPhrase' => '$sf'));
+		
+		$view = Piwik_ViewDataTable::factory();
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->setDatatable($dataTable);
+		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit);
+			
+		return $result;
+	}
+	
+	public function getSingleSearchPhasePie($searchPhrase=-1)
+	{
+		static $sf;
+		if ($searchPhrase != -1) $sf = $searchPhrase;
+		
+		$view = Piwik_ViewDataTable::factory('graphPie');
+		
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+		
+		$dataTable = Piwik_SmartLoggent_API::getSearchPhraseGeoData($idSite, $period, $date, $segment, array('searchPhrase' => '$sf'));
+		
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhraseDistributionData' );
+		$view->setDatatable($dataTable);
+		$view->setUniqueIdViewDataTable ("graph_gn_distrib");
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+	
 	public function getSearchPhraseMetricGraph($metric=-1, $limit=3)
 	{
 		static $mt;
@@ -128,10 +192,27 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 	
-	public function getSearchPhraseEvolution()
+	public function getSearchPhraseEvolution($source=-1, $params = -1)
 	{
+		static $src;
+		static $pars;
+		
+		if ($source != -1) $src = $source;
+		if ($params != -1) $pars = $params;
+		
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+		
 		$view = Piwik_ViewDataTable::factory('graphEvolution');
-		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase' );
+		$view->init( $this->pluginName,  __FUNCTION__,  'SmartLoggent.getSearchPhrase');
+		
+		if ($src) {
+			$dataTable = Piwik_SmartLoggent_API::$src($idSite, $period, $date, $segment, $pars);
+			$view->setDatatable($dataTable);
+		}
+		
 		$view->disableShowAllColumns();
 		$view->setColumnsToDisplay(array(Piwik_SmartLoggent_API::INDEX_NB_VISITS));
 		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS,  Piwik_Translate($this->array_metrics_titles[Piwik_SmartLoggent_API::INDEX_NB_VISITS]));

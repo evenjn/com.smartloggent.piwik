@@ -50,3 +50,10 @@ $(document).ready(function() {
 		$(this).next().toggle();
 	});
 });
+
+function showDiv(id) {
+	$('.paneldivMain').fadeOut();
+	$('.paneldiv').fadeOut();
+	$('.columndiv').fadeOut();
+	$('#' + id).fadeIn();
+}

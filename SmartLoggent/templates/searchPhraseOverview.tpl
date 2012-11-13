@@ -1,13 +1,15 @@
-
 <link rel="stylesheet" type="text/css" href="plugins/SmartLoggent/templates/sl.css" />
+<script src="plugins/SmartLoggent/templates/sl.js" />
+
 {literal}
 <script>
 
-function showDiv(id) {
-	$('.paneldivMain').fadeOut();
-	$('.paneldiv').fadeOut();
-	$('#' + id).fadeIn();
+function showSingleSearchPhrase(phrase) {
+	newurl = {/literal}'{$singleSearchPhraseUrl}'{literal} + "&phrase=" + phrase; 
+	document.location = newurl;
 }
+
+
 
 </script>
 {/literal}

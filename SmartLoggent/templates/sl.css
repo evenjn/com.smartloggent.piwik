@@ -49,13 +49,15 @@ h2.sl_hasdescription {
 	position: absolute; 
 	top: 100px; 
 	left: 250px;
+	width: 935px;
 }
 
 .paneldiv {
-	display: none;
+	display: block;
 	position: absolute; 
 	top: 100px; 
 	left: 250px;
+	width: 935px;
 }
 
 .columndiv {

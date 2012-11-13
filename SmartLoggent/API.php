@@ -138,6 +138,141 @@ class Piwik_SmartLoggent_API
 	
 	}
 	
+	public function getSingleSearchEvolutionData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for SingleSearchPhrase evolution graph ([13])
+	
+		$searchPhrase = $params['searchPhrase'];
+		
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleSearchPhraseNamedEntitiesData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for SingleSearchPhrase named entities table ([14])
+	
+		$searchPhrase = $params['searchPhrase'];
+	
+		$namedEntities[1] = new Piwik_DataTable_Row();
+		$namedEntities[1]->addColumn('label', 'Paris');
+		$namedEntities[1]->addMetadata('type', "");
+		$namedEntities[1]->addMetadata('annotation', "");
+		$namedEntities[2] = new Piwik_DataTable_Row();
+		$namedEntities[2]->addColumn('label', 'London');
+		$namedEntities[2]->addMetadata('type', "");
+		$namedEntities[2]->addMetadata('annotation', "");
+		$namedEntities[3] = new Piwik_DataTable_Row();
+		$namedEntities[3]->addColumn('label', 'Rome');
+		$namedEntities[3]->addMetadata('type', "");
+		$namedEntities[3]->addMetadata('annotation', "");
+		
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($namedEntities);
+		return $dataTable;
+		
+	}
+	
+	public function getSingleSearchPhraseClassData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for SingleSearchPhrase class table ([15])
+	
+		$searchPhrase = $params['searchPhrase'];
+	
+		$class[1] = new Piwik_DataTable_Row();
+		$class[1]->addColumn('label', 'Class 1');
+		$class[1]->addMetadata('type', "");
+		$class[1]->addMetadata('annotation', "");
+		$class[2] = new Piwik_DataTable_Row();
+		$class[2]->addColumn('label', 'Class 2');
+		$class[2]->addMetadata('type', "");
+		$class[2]->addMetadata('annotation', "");
+		$class[3] = new Piwik_DataTable_Row();
+		$class[3]->addColumn('label', 'Class 3');
+		$class[3]->addMetadata('type', "");
+		$class[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($class);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleSearchPhraseClusterData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for SingleSearchPhrase cluster table ([16])
+	
+		$searchPhrase = $params['searchPhrase'];
+	
+		$cluster[1] = new Piwik_DataTable_Row();
+		$cluster[1]->addColumn('label', 'Cluster A');
+		$cluster[1]->addMetadata('type', "");
+		$cluster[1]->addMetadata('annotation', "");
+		$cluster[2] = new Piwik_DataTable_Row();
+		$cluster[2]->addColumn('label', 'Cluster B');
+		$cluster[2]->addMetadata('type', "");
+		$cluster[2]->addMetadata('annotation', "");
+		$cluster[3] = new Piwik_DataTable_Row();
+		$cluster[3]->addColumn('label', 'Cluster C');
+		$cluster[3]->addMetadata('type', "");
+		$cluster[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($cluster);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleSearchPhraseNaturalSearchData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for SingleSearchPhrase Natural Search table ([17])
+	
+		$searchPhrase = $params['searchPhrase'];
+	
+		$naturalSearch[1] = new Piwik_DataTable_Row();
+		$naturalSearch[1]->addColumn('label', 'Search X');
+		$naturalSearch[1]->addMetadata('type', "");
+		$naturalSearch[1]->addMetadata('annotation', "");
+		$naturalSearch[2] = new Piwik_DataTable_Row();
+		$naturalSearch[2]->addColumn('label', 'Search Y');
+		$naturalSearch[2]->addMetadata('type', "");
+		$naturalSearch[2]->addMetadata('annotation', "");
+		$naturalSearch[3] = new Piwik_DataTable_Row();
+		$naturalSearch[3]->addColumn('label', 'Search Z');
+		$naturalSearch[3]->addMetadata('type', "");
+		$naturalSearch[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($naturalSearch);
+		return $dataTable;
+	
+	}
+	
+	public function getSearchPhraseGeoData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for SingleSearchPhrase Geographical distribution Pie graph ([18])
+	
+		$searchPhrase = $params['searchPhrase'];	
+		$queryPieDistrib = array(
+				'Italy' => 0.382,
+				'France' => 0.949,
+				'Spain' => 1.00,
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($queryPieDistrib);
+		return $dataTable;
+	
+	}
+	
 	public function getSearchWord($idSite, $period, $date, $segment = false)
 	{
 		return $this->get($idSite, $period, $date, $segment, self::DIM_SEARCHWORD);

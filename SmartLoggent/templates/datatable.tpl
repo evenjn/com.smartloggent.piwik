@@ -60,8 +60,8 @@ function hideColumnInfo(column)
 			<tbody>
 			{foreach from=$arrayDataTable item=row}
 			<tr annotation="{$row.metadata.annotation|utf8_decode|htmlentities}" type="{$row.metadata.type}" {if $row.idsubdatatable && $javascriptVariablesToSet.controllerActionCalledWhenRequestSubTable != null}class="subDataTable" id="{$row.idsubdatatable}"{/if}{if isset($row.issummaryrow) && $row.issummaryrow && $properties.highlight_summary_row} class="highlight"{/if}>
-				{foreach from=$dataTableColumns item=column}
-				<td>
+				{foreach from=$dataTableColumns item=column name=colitem}
+				<td {if $smarty.foreach.colitem.first} onClick="showSingleSearchPhrase('{$row.columns.label}');" {/if}>
 					{include file="CoreHome/templates/datatable_cell.tpl"}
 				</td>
 				{/foreach}
