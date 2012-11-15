@@ -92,10 +92,20 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		echo $view->render();
 	}
 
-	public function classOverview()
+	public function classes()
 	{
 		$view = new Piwik_View('SmartLoggent/templates/classOverview.tpl');
 		$view->class = $this->getClass(true);
+		
+		$classMetrics = array();
+		
+		foreach ($this->array_metrics as $metric) {
+			$result_classMetrics = $this->getClassMetricGraph($metric);
+			$classMetrics[] = $result_classMetrics;
+		}
+		
+		$view->classMetrics = $classMetrics;
+		
 		$view->evolution = $this->getClassEvolution(false, true);
 		echo $view->render();
 	}
@@ -167,7 +177,7 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$view->disableFooter();
 		$view->setAxisYUnit($mt);
 		$view->setUniqueIdViewDataTable ("graph_gn_" . $mt);
-		$view->setTemplate("SmartLoggent/templates/SearchPhraseGraphMetric.tpl");
+		$view->setTemplate("SmartLoggent/templates/GraphMetric.tpl");
 		$result = $this->renderView($view, true);
 		return $result; 
 	}
@@ -260,6 +270,27 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$view = Piwik_ViewDataTable::factory();
 		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getClass');
 		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_Class', $fetch, $limit);
+		
+		return $result;
+	}
+	
+	public function getClassMetricGraph($metric=-1, $limit=4)
+	{
+		static $mt;
+		if ($metric != -1)
+			$mt = $metric;
+	
+		$view = Piwik_ViewDataTable::factory('graphVerticalBar');
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getClass' );
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array('label', $mt));
+		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
+		$view->setSortedColumn($mt, 'desc');
+		$view->disableFooter();
+		$view->setAxisYUnit($mt);
+		$view->setUniqueIdViewDataTable ("graph_gn_" . $mt);
+		$view->setTemplate("SmartLoggent/templates/GraphMetric.tpl");
+		$result = $this->renderView($view, true);
 		return $result;
 	}
 	
