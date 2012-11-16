@@ -9,8 +9,6 @@ function showSingleSearchPhrase(phrase) {
 	document.location = newurl;
 }
 
-
-
 </script>
 {/literal}
 

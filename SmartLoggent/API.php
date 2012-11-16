@@ -273,6 +273,182 @@ class Piwik_SmartLoggent_API
 	
 	}
 	
+	public function getSearchPhraseClassData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for Search Phrases of the class table ([26])
+	
+		$class = $params['class'];
+	
+		$phrase[1] = new Piwik_DataTable_Row();
+		$phrase[1]->addColumn('label', 'Phrase 1');
+		$phrase[1]->addMetadata('type', "");
+		$phrase[1]->addMetadata('annotation', "");
+		$phrase[2] = new Piwik_DataTable_Row();
+		$phrase[2]->addColumn('label', 'Phrase 2');
+		$phrase[2]->addMetadata('type', "");
+		$phrase[2]->addMetadata('annotation', "");
+		$phrase[3] = new Piwik_DataTable_Row();
+		$phrase[3]->addColumn('label', 'Phrase 3');
+		$phrase[3]->addMetadata('type', "");
+		$phrase[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($phrase);
+		return $dataTable;
+	
+	}
+	
+	public function getSearchPhraseClassMetricData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for Search Phrase of the class metric graphs ([27])
+	
+		$class = $params['class'];
+		$metric = $params['metric'];
+		
+		$metricData = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($metricData);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClassNamedEntitiesDistributionData($idSite, $period, $date, $segment = false)
+	{
+		// TODO @CELI: return a dataTable for named entities distribution Pie graph ([30])
+	
+		$queryPieDistrib = array(
+				'Cities' => 0.382,
+				'People' => 0.949,
+				'Countries' => 1.00,
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($queryPieDistrib);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClassNamedEntitiesPopularityData($idSite, $period, $date, $segment = false)
+	{
+		// TODO @CELI: return a dataTable for named entitites popularity graph ([31])
+		
+		$popularity = array(
+				'Paris' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($popularity);
+		return $dataTable;
+	
+	}
+	
+	public function getClassDetailEvolutionData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for evolution detail for class graph ([22])
+	
+		$metric = $params['metric'];
+		
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClassVisitsEvolutionData($idSite, $period, $date, $segment = false, $class)
+	{
+		// TODO @CELI: return a dataTable for class visits evolution graph ([24])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClassDistributionData($idSite, $period, $date, $segment = false, $class)
+	{
+		// TODO @CELI: return a dataTable for Single Class Geographical distribution Pie graph ([25])
+	
+		$queryPieDistrib = array(
+				'Italy' => 0.382,
+				'France' => 0.949,
+				'Spain' => 1.00,
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($queryPieDistrib);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClassPhraseEvolutionData($idSite, $period, $date, $segment = false, $class)
+	{
+		// TODO @CELI: return a dataTable for Search Phrases of the class evolution graph ([28])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClassDetailEvolutionData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for evolution detail for single class graph ([29])
+	
+		$metric = $params['metric'];
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSubClassesVisitsEvolutionData($idSite, $period, $date, $segment = false, $class)
+	{
+		// TODO @CELI: return a dataTable for subclass evolution graph ([35])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
 	public function getSearchWord($idSite, $period, $date, $segment = false)
 	{
 		return $this->get($idSite, $period, $date, $segment, self::DIM_SEARCHWORD);
@@ -280,10 +456,67 @@ class Piwik_SmartLoggent_API
 	
 	public function getClass($idSite, $period, $date, $segment = false)
 	{
-		$result = $this->get($idSite, $period, $date, $segment, Piwik_SmartLoggent_API::DIM_CLASS);
-		return $result;
+		// TODO @CELI: return a dataTable for class ([19])
+
+		$class[1] = new Piwik_DataTable_Row();
+		$class[1]->addColumn('label', 'Class 1');
+		$class[1]->addMetadata('type', "");
+		$class[1]->addMetadata('annotation', "");
+		$class[2] = new Piwik_DataTable_Row();
+		$class[2]->addColumn('label', 'Class 2');
+		$class[2]->addMetadata('type', "");
+		$class[2]->addMetadata('annotation', "");
+		$class[3] = new Piwik_DataTable_Row();
+		$class[3]->addColumn('label', 'Class 3');
+		$class[3]->addMetadata('type', "");
+		$class[3]->addMetadata('annotation', "");
+
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($class);
+		return $dataTable;
 	}
 	
+	public function getSubClassesData($idSite, $period, $date, $segment = false, $class)
+	{
+		// TODO @CELI: return a dataTable for subclasses table ([33])
+	
+		$subclass[1] = new Piwik_DataTable_Row();
+		$subclass[1]->addColumn('label', 'Subclass 1');
+		$subclass[1]->addMetadata('type', "");
+		$subclass[1]->addMetadata('annotation', "");
+		$subclass[2] = new Piwik_DataTable_Row();
+		$subclass[2]->addColumn('label', 'Subclass 2');
+		$subclass[2]->addMetadata('type', "");
+		$subclass[2]->addMetadata('annotation', "");
+		$subclass[3] = new Piwik_DataTable_Row();
+		$subclass[3]->addColumn('label', 'Subclass 3');
+		$subclass[3]->addMetadata('type', "");
+		$subclass[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($subclass);
+		return $dataTable;
+	
+	}
+	
+	public function getSubClassDetailEvolutionData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for evolution detail for subclass graph ([36])
+	
+		$class = $params['class'];
+		$metric = $params['metric'];
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
 	public function get($idSite, $period, $date, $segment = false, $dimension = self::DIM_SEARCHPHRASE)
 	{
 		$tops_string = Piwik_Common::getRequestVar('smartloggent_filter_evolution', '');

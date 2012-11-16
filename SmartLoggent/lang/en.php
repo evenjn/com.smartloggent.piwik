@@ -8,6 +8,7 @@ $translations = array(
 	,	'LOC_SL_SubmenuSearchPhrases' => 'Search Phrases'
 	,	'LOC_SL_SubmenuSingleSearchPhrases' => 'Single Search Phrases'
 	,	'LOC_SL_SubmenuClasses' => 'Classes'
+	,	'LOC_SL_SubmenuSingleClasses' => 'Single Classes'
 	,	'LOC_SL_SubmenuClustering' => 'Clustering'
 	,	'LOC_SL_SubmenuNamedEntities' => 'Named Entities'
 	,	'LOC_SL_SubmenuNamedEntityTypes' => 'Named Entites Types'
