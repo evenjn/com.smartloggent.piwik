@@ -91,7 +91,8 @@ class Piwik_SmartLoggent_API
 		if (self::$instance == null)
 		{
 			self::$instance = new self;
-		}
+		}		// TODO @CELI: return a dataTable for SingleSearchPhrase evolution graph ([13])
+		
 		return self::$instance;
 	}
 	
@@ -517,6 +518,212 @@ class Piwik_SmartLoggent_API
 		return $dataTable;
 	
 	}
+	
+	public function getClusterAnalysis() {
+		// TODO @CELI: return array of available cluster analysis ([38])
+		
+		$cans = array(array("title"=> "Analisys 1", "value" => 1), 
+			           array("title"=> "Analisys 2", "value" => 2),
+				       array("title"=> "Analisys 3", "value" => 3),
+				       array("title"=> "Analisys 4", "value" => 4),
+		);
+		
+		return $cans;
+	}
+	
+	public function getClusters($idSite, $period, $date, $segment = false)
+	{
+		// TODO @CELI: return a dataTable for clusters ([40])
+	
+		$subclass[1] = new Piwik_DataTable_Row();
+		$subclass[1]->addColumn('label', 'Cluster 1');
+		$subclass[1]->addMetadata('type', "");
+		$subclass[1]->addMetadata('annotation', "");
+		$subclass[2] = new Piwik_DataTable_Row();
+		$subclass[2]->addColumn('label', 'Cluster 2');
+		$subclass[2]->addMetadata('type', "");
+		$subclass[2]->addMetadata('annotation', "");
+		$subclass[3] = new Piwik_DataTable_Row();
+		$subclass[3]->addColumn('label', 'Cluster 3');
+		$subclass[3]->addMetadata('type', "");
+		$subclass[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($subclass);
+		return $dataTable;
+	
+	}
+	
+	public function getClusterEvolution($idSite, $period, $date, $segment = false)
+	{
+		// TODO @CELI: return a dataTable for evolution cluster graph ([42])
+
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getClusterDetailEvolutionData($idSite, $period, $date, $segment = false, $metric)
+	{
+		// TODO @CELI: return a dataTable for evolution detail for cluster graph ([43])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClusterEvolutionData($idSite, $period, $date, $segment = false, $cluster)
+	{
+		// TODO @CELI: return a dataTable for evolution detail for single cluster graph ([46])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClusterDistributionData($idSite, $period, $date, $segment = false, $cluster)
+	{
+		// TODO @CELI: return a dataTable for SingleCluster Geographical distribution Pie graph ([47])
+	
+		$queryPieDistrib = array(
+				'Italy' => 0.382,
+				'France' => 0.949,
+				'Spain' => 1.00,
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($queryPieDistrib);
+		return $dataTable;
+	
+	}
+
+	public function getSingleClusterSearchPhraseData($idSite, $period, $date, $segment = false, $cluster)
+	{
+		// TODO @CELI: return a dataTable with search phrase for single cluster ([48])
+	
+		$subclass[1] = new Piwik_DataTable_Row();
+		$subclass[1]->addColumn('label', 'Search Phrase 1');
+		$subclass[1]->addMetadata('type', "");
+		$subclass[1]->addMetadata('annotation', "");
+		$subclass[2] = new Piwik_DataTable_Row();
+		$subclass[2]->addColumn('label', 'Search Phrase 2');
+		$subclass[2]->addMetadata('type', "");
+		$subclass[2]->addMetadata('annotation', "");
+		$subclass[3] = new Piwik_DataTable_Row();
+		$subclass[3]->addColumn('label', 'Search Phrase 3');
+		$subclass[3]->addMetadata('type', "");
+		$subclass[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($subclass);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClusterSearchPhraseEvolutionData($idSite, $period, $date, $segment = false, $cluster)
+	{
+		// TODO @CELI: return a dataTable for single cluster evolution graph ([50])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClusterPhraseDetailEvolutionData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for single cluster detail evolution graph ([51])
+	
+		$cluster = $params['cluster'];
+		$metric = $params['metric'];
+		
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+		
+	public function getSingleClusterNamedEntitiesDistributionPieData($idSite, $period, $date, $segment = false, $cluster)
+	{
+		// TODO @CELI: return a dataTable for cluster NE distribution Pie graph ([52])
+	
+		$queryPieDistrib = array(
+				'NE Type 1' => 0.382,
+				'NE Type 2' => 0.949,
+				'NE Type 3' => 1.00,
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($queryPieDistrib);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClusterNamedEntitiesPopularityData($idSite, $period, $date, $segment = false, $cluster)
+	{
+		// TODO @CELI: return a dataTable for named entitites popularity graph ([53])
+		
+		$popularity = array(
+				'Paris' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($popularity);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleClusterClassificationData($idSite, $period, $date, $segment = false, $cluster)
+	{
+		// TODO @CELI: return a dataTable for cluster NE classification Pie graph ([54])
+	
+		$queryPieDistrib = array(
+				'Type 1' => 0.382,
+				'Type 2' => 0.949,
+				'Type 3' => 1.00,
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($queryPieDistrib);
+		return $dataTable;
+	
+	}
+	
 	public function get($idSite, $period, $date, $segment = false, $dimension = self::DIM_SEARCHPHRASE)
 	{
 		$tops_string = Piwik_Common::getRequestVar('smartloggent_filter_evolution', '');
@@ -527,35 +734,35 @@ class Piwik_SmartLoggent_API
 			return $dataTable;
 		}
 		$shards =  self::splitSegment('SL'.$dimension.'=='.$tops_string, 'SL'.$dimension);
-		
+	
 		$result;
 		$firstDatatable = true;
 		foreach ($shards as $shard)
 		{
-// 			Piwik::log("get$partition building from shard " . $shard);
+			// 			Piwik::log("get$partition building from shard " . $shard);
 			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $shard);
 			$dataTable = $archive->getDataTable('SmartLoggent_'.$dimension);
-// 			Piwik::log("get$partition got the datatable from archive, type " .get_class($dataTable) );
+			// 			Piwik::log("get$partition got the datatable from archive, type " .get_class($dataTable) );
 			if($firstDatatable)
 			{
-// 				Piwik::log("get$partition it's the first");
+				// 				Piwik::log("get$partition it's the first");
 				$firstDatatable = false;
 				$result = $dataTable;
 			}
 			else
 			{
-// 				Piwik::log("get$partition it's not the first");
+				// 				Piwik::log("get$partition it's not the first");
 				if ($result instanceof Piwik_DataTable_Array)
 				{
 					if (!($dataTable instanceof Piwik_DataTable_Array))
 					{
 						Piwik::log("get$dimension error on Piwik_DataTable_Array");
 					}
-// 					Piwik::log("get$partition building from array");
+					// 					Piwik::log("get$partition building from array");
 					$asarray = $result->getArray();
 					foreach ($asarray as $id => $table)
 					{
-// 						Piwik::log("get$partition building from array, one more table..");
+						// 						Piwik::log("get$partition building from array, one more table..");
 						$dataTableArray = $dataTable->getArray();
 						$goodtogo = array_key_exists($id, $dataTableArray);
 						if (! $goodtogo)
@@ -569,7 +776,7 @@ class Piwik_SmartLoggent_API
 						$relatedTable = $dataTableArray[$id];
 						foreach ($relatedTable->getRows() as $row)
 						{
-// 							Piwik::log("get$partition building adding row " .$row->getColumn('label'));
+							// 							Piwik::log("get$partition building adding row " .$row->getColumn('label'));
 							$table->addRow($row);
 						}
 					}
@@ -584,7 +791,7 @@ class Piwik_SmartLoggent_API
 					$rows = $dataTable->getRows();
 					foreach ($rows as $row)
 					{
-// 						Piwik::log("get$partition building adding row " .$row->getColumn('label'));
+						// 						Piwik::log("get$partition building adding row " .$row->getColumn('label'));
 						$result->addRow($row);
 					}
 				}
