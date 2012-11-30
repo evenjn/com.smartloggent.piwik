@@ -4,6 +4,7 @@ class Piwik_SmartLoggent_Core_Archive_Single extends Piwik_Archive_Single
 {
 	public function prepareArchive()
 	{
+// 		$profiler = Piwik::profilestart('Piwik_SmartLoggent_Core_Archive_Single::'.__FUNCTION__); // 		Piwik::profileend($profiler);
 		$archiveJustProcessed = false;
 
 		
@@ -20,20 +21,20 @@ class Piwik_SmartLoggent_Core_Archive_Single extends Piwik_Archive_Single
 			$this->isThereSomeVisits = false;
 			$this->alreadyChecked[$cacheKey] = true;
 			$dayString = $this->period->getPrettyString();
-			$logMessage = "Preparing archive: " . $periodString . "(" . $dayString . "), plugin $plugin ";
+			$logMessage = 'Piwik_SmartLoggent_Core_Archive_Single::'.__FUNCTION__." Preparing archive: " . $periodString . "(" . $dayString . "), plugin $plugin ";
 			// if the END of the period is BEFORE the website creation date
 			// we already know there are no stats for this period
 			// we add one day to make sure we don't miss the day of the website creation
 			if( $this->period->getDateEnd()->addDay(2)->isEarlier( $this->site->getCreationDate() ) )
 			{
-				Piwik::log("$logMessage skipped, archive is before the website was created.");
+//  				Piwik::log("$logMessage skipped, archive is before the website was created.");
 				return;
 			}
 			
 			// if the starting date is in the future we know there is no visit
 			if( $this->period->getDateStart()->subDay(2)->isLater( Piwik_Date::today() ) )
 			{
-				Piwik::log("$logMessage skipped, archive is after today.");
+//  				Piwik::log("$logMessage skipped, archive is after today.");
 				return;
 			}
 			
@@ -62,7 +63,7 @@ class Piwik_SmartLoggent_Core_Archive_Single extends Piwik_Archive_Single
 				}
 				else
 				{
-					Piwik::log("* PROCESSING $logMessage, not archived yet...");
+// 					Piwik::log("* PROCESSING $logMessage, not archived yet...");
 					$archiveJustProcessed = true;
 
 					// Process the reports
@@ -82,11 +83,12 @@ class Piwik_SmartLoggent_Core_Archive_Single extends Piwik_Archive_Single
 			}
 			
 			
-			Piwik::log("$logMessage, Visits = ". $this->archiveProcessing->getNumberOfVisits());
+// 			Piwik::log("$logMessage, Visits = ". $this->archiveProcessing->getNumberOfVisits());
 			$this->isThereSomeVisits = !$archivingDisabledArchiveNotProcessed
 										&& $this->archiveProcessing->isThereSomeVisits();
 			$this->idArchive = $idArchive;
 		}
+// 		Piwik::profileend($profiler);
 		return $archiveJustProcessed;
 	}
 }

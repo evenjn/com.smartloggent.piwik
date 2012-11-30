@@ -11,6 +11,57 @@ class Piwik_SmartLoggent_API
 	const DIM_NAMEDENTITY = 'NamedEntity';
 	const DIM_NAMEDENTITYTYPE = 'NamedEntityType';
 	
+	public static $DIMENSIONS = array
+	(
+		self::DIM_LANGUAGE
+	, self::DIM_CLASS
+	, self::DIM_SEARCHPHRASE
+	, self::DIM_CLUSTER
+	, self::DIM_CLUSTERANALYSIS
+	, self::DIM_SEARCHWORD
+	, self::DIM_NAMEDENTITY
+	, self::DIM_NAMEDENTITYTYPE
+	);
+	
+	const SEG_LANGUAGE = 'SLLanguage';
+	const SEG_CLASS = 'SLClass';
+	const SEG_SEARCHPHRASE= 'SLSearchPhrase';
+	const SEG_CLUSTER = 'SLCluster';
+	const SEG_CLUSTERANALYSIS = 'SLClusterAnalysis';
+	const SEG_SEARCHWORD = 'SLSearchWord';
+	const SEG_NAMEDENTITY = 'SLNamedEntity';
+	const SEG_NAMEDENTITYTYPE = 'SLNamedEntityType';
+	const SEG_TOPCLASS = 'SLTopClass';
+	const SEG_BOTTOMCLASS = 'SLBottomClass';
+	const SEG_DIRECTSUBCLASS = 'SLDirectSubClass';
+	const SEG_SUPERCLASS = 'SLSuperClass';
+	
+	public static $SEGMENTS = array
+	(
+		self::SEG_LANGUAGE
+	, self::SEG_CLASS
+	, self::SEG_SEARCHPHRASE
+	, self::SEG_CLUSTER
+	, self::SEG_CLUSTERANALYSIS
+	, self::SEG_SEARCHWORD
+	, self::SEG_NAMEDENTITY
+	, self::SEG_NAMEDENTITYTYPE
+	, self::SEG_SUPERCLASS
+	, self::SEG_TOPCLASS
+	, self::SEG_BOTTOMCLASS
+	, self::SEG_DIRECTSUBCLASS
+	);
+	
+	public static $SEGMENTSTOESCAPE = array
+	(
+			self::SEG_LANGUAGE
+			, self::SEG_CLUSTER
+			, self::SEG_CLUSTERANALYSIS
+			, self::SEG_SEARCHWORD
+			, self::SEG_NAMEDENTITY
+			, self::SEG_NAMEDENTITYTYPE
+	);
+	
 	/**
 	 * From Piwik_Archive. The number of unique visitors in this subset.
 	 */
@@ -83,7 +134,7 @@ class Piwik_SmartLoggent_API
 	const LABEL = 'label';
 	
 	static private $instance = null;
-	
+
 	/** Get singleton instance
 	 * @return Piwik_SmartLoggent_API */
 	static public function getInstance()
@@ -91,8 +142,7 @@ class Piwik_SmartLoggent_API
 		if (self::$instance == null)
 		{
 			self::$instance = new self;
-		}		// TODO @CELI: return a dataTable for SingleSearchPhrase evolution graph ([13])
-		
+		}
 		return self::$instance;
 	}
 	
@@ -457,24 +507,10 @@ class Piwik_SmartLoggent_API
 	
 	public function getClass($idSite, $period, $date, $segment = false)
 	{
-		// TODO @CELI: return a dataTable for class ([19])
-
-		$class[1] = new Piwik_DataTable_Row();
-		$class[1]->addColumn('label', 'Class 1');
-		$class[1]->addMetadata('type', "");
-		$class[1]->addMetadata('annotation', "");
-		$class[2] = new Piwik_DataTable_Row();
-		$class[2]->addColumn('label', 'Class 2');
-		$class[2]->addMetadata('type', "");
-		$class[2]->addMetadata('annotation', "");
-		$class[3] = new Piwik_DataTable_Row();
-		$class[3]->addColumn('label', 'Class 3');
-		$class[3]->addMetadata('type', "");
-		$class[3]->addMetadata('annotation', "");
-
-		$dataTable = new Piwik_DataTable();
-		$dataTable->addRowsFromArray($class);
-		return $dataTable;
+		// $segment = Piwik_SmartLoggent_SegmentEditor::set('SLBottomClass', '==', '1', $segment);
+		// $segment = Piwik_SmartLoggent_SegmentEditor::set('SLTopClass', '==', '1', $segment);
+		$result = $this->get($idSite, $period, $date, $segment, Piwik_SmartLoggent_API::DIM_CLASS);
+		return $result;
 	}
 	
 	public function getSubClassesData($idSite, $period, $date, $segment = false, $class)
@@ -724,45 +760,47 @@ class Piwik_SmartLoggent_API
 	
 	}
 	
+	
 	public function get($idSite, $period, $date, $segment = false, $dimension = self::DIM_SEARCHPHRASE)
 	{
-		$tops_string = Piwik_Common::getRequestVar('smartloggent_filter_evolution', '');
-		if ($tops_string === '')
-		{
-			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $segment);
-			$dataTable = $archive->getDataTable('SmartLoggent_'.$dimension);
-			return $dataTable;
-		}
-		$shards =  self::splitSegment('SL'.$dimension.'=='.$tops_string, 'SL'.$dimension);
+		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
+		// 		$tops_string = Piwik_Common::getRequestVar('smartloggent_filter_evolution', '');
+		// 		if ($tops_string === '')
+			// 		{
+			// 			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $segment);
+			// 			$dataTable = $archive->getDataTable('SmartLoggent_'.$dimension);
+			// 			return $dataTable;
+			// 		}
+		$shards =  Piwik_SmartLoggent_SegmentEditor::split($segment, 'SL'.$dimension);
 	
 		$result;
 		$firstDatatable = true;
 		foreach ($shards as $shard)
 		{
-			// 			Piwik::log("get$partition building from shard " . $shard);
+// 			Piwik::log("get$partition building from shard " . $shard);
 			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $shard);
 			$dataTable = $archive->getDataTable('SmartLoggent_'.$dimension);
-			// 			Piwik::log("get$partition got the datatable from archive, type " .get_class($dataTable) );
+// 			Piwik::log("get$dimension got the datatable from archive, type " .get_class($dataTable) );
 			if($firstDatatable)
 			{
-				// 				Piwik::log("get$partition it's the first");
+				// 				Piwik::log("get$dimension it's the first");
 				$firstDatatable = false;
 				$result = $dataTable;
 			}
 			else
 			{
-				// 				Piwik::log("get$partition it's not the first");
+				// 				Piwik::log("get$dimension it's not the first");
 				if ($result instanceof Piwik_DataTable_Array)
 				{
 					if (!($dataTable instanceof Piwik_DataTable_Array))
 					{
 						Piwik::log("get$dimension error on Piwik_DataTable_Array");
 					}
-					// 					Piwik::log("get$partition building from array");
+					// 					Piwik::log("get$dimension building from array");
 					$asarray = $result->getArray();
 					foreach ($asarray as $id => $table)
 					{
-						// 						Piwik::log("get$partition building from array, one more table..");
+						// 						Piwik::log("get$dimension building from array, one more table..");
 						$dataTableArray = $dataTable->getArray();
 						$goodtogo = array_key_exists($id, $dataTableArray);
 						if (! $goodtogo)
@@ -776,7 +814,7 @@ class Piwik_SmartLoggent_API
 						$relatedTable = $dataTableArray[$id];
 						foreach ($relatedTable->getRows() as $row)
 						{
-							// 							Piwik::log("get$partition building adding row " .$row->getColumn('label'));
+							// 							Piwik::log("get$dimension building adding row " .$row->getColumn('label'));
 							$table->addRow($row);
 						}
 					}
@@ -791,7 +829,7 @@ class Piwik_SmartLoggent_API
 					$rows = $dataTable->getRows();
 					foreach ($rows as $row)
 					{
-						// 						Piwik::log("get$partition building adding row " .$row->getColumn('label'));
+						// 						Piwik::log("get$dimension building adding row " .$row->getColumn('label'));
 						$result->addRow($row);
 					}
 				}
@@ -804,94 +842,28 @@ class Piwik_SmartLoggent_API
 		return $result;
 	}
 	
-	public function getTop($idSite, $period, $date, $segment = false, $partition = self::DIM_SEARCHPHRASE, $metrics = self::INDEX_CLICK_PROBABILITY)
+	public function getTop($idSite, $period, $date, $segment = false, $partition = self::DIM_SEARCHPHRASE, $metrics = self::INDEX_CLICK_PROBABILITY, $limit=10)
 	{
-		// presently this is hard-coded.
-		return array('ウサギ科', 'Canidae');
-	}
-
-	/**
-	 * Produces an array of segments. Hard to explain. Example:
-	 *
-	 * input:
-	 * segment: 'language==it,de;color==blue,black,red;country==us'
-	 * dimension: 'language'
-	 *
-	 * output:
-	 *
-	 * array (
-	 * 'language==it;color==blue,black,red;country==us'
-	 * 'language==de;color==blue,black,red;country==us'
-	 * )
-	 *
-	 * @param string $segment
-	 * @param string $dimension
-	 */
-	private static function splitSegment($segment, $dimension)
-	{
-// 		Piwik::log("attempting to split segment $segment along $dimension");
-		// case 1: at the end of the segment
-		// array
-		$matches = array();
-		// string
-		$pattern = '/(.*)'.$dimension.'==([^;]+)$/';
-		// int
-		$tosplit = preg_match($pattern, $segment, $matches);
-		$hastail = false;
-		if ($tosplit === 1)
-		{
-			// we're good
-// 			Piwik::log("attempting to split segment $segment along $dimension .. good with no tail");
-		}
-		else if ($tosplit === 0)
-		{
-			// try with another method!
-			// string
-			$pattern = '/(.*)'.$dimension.'==([^;]+)(.+)$/';
-			// int
-			$tosplit = preg_match($pattern, $segment, $matches);
-			if ($tosplit === 1)
-			{
-				// we're good
-// 				Piwik::log("attempting to split segment $segment along $dimension .. good with tail");
-				$hastail = true;
-			}
-			else if ($tosplit === 0)
-			{
-// 				Piwik::log("attempting to split segment $segment along $dimension .. no need to split");
-				return array($segment);
-			}
-			else
-			{
-				// error!
-// 				Piwik::log("attempting to split segment $segment along $dimension .. error!!!");
-				return array($segment);
-			}
-		}
-		else
-		{
-			// error!
-// 			Piwik::log("attempting to split segment $segment along $dimension .. error!!!");
-			return array($segment);
-		}
-		// string
-		$before = $matches[1];
-// 		Piwik::log("attempting to split segment $segment along $dimension .. before is $before");
-		$thing = $matches[2];
-// 		Piwik::log("attempting to split segment $segment along $dimension .. thing is $thing");
-		$tail = '';
-		if ($hastail)
-			$tail = $matches[3];
-// 		Piwik::log("attempting to split segment $segment along $dimension .. tail is $tail");
-		$values = preg_split('/,/', $thing);
+		$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $segment);
+		$dataTable = $archive->getDataTable('SmartLoggent_'.$partition."By".$metrics);
 		$result = array();
-		foreach ($values as $value)
+		$ids = array();
+		$labels = array();
+		$rows = $dataTable->getRows();
+		$count = 0;
+		foreach ($rows as $row)
 		{
-			$shard =$before.$dimension.'=='.$value.$tail;
-// 			Piwik::log("attempting to split segment $segment along $dimension .. shard is $shard");
-			$result[] = $shard;
+			if ($count >= $limit)
+				break;
+			$label = $row->getColumn('label');
+			$id = $row->getColumn('id');
+			$ids[] = $id;
+			$labels[] = $label;
+			$count = $count + 1;
 		}
 	
+		$result['ids'] = $ids;
+		$result['labels'] = $labels;
 		return $result;
 	}
 	
@@ -900,5 +872,12 @@ class Piwik_SmartLoggent_API
 		$encoded = base64_encode($value);
 		$replaced = str_replace('=', '_', $encoded);
 		return $replaced;
+	}
+	
+	public static function decodeString($value)
+	{
+		$replaced = str_replace('_', '=', $value);
+		$decoded = base64_decode($replaced);
+		return $decoded;
 	}
 }

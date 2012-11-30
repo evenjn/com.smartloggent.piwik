@@ -9,6 +9,7 @@ class Piwik_SmartLoggent_Core_ArchiveProcessing_Period extends Piwik_ArchiveProc
 	 */
 	protected function loadSubperiodsArchive()
 	{
+		//$profiler = Piwik::profilestart('Piwik_SmartLoggent_Core_ArchiveProcessing_Period::'.__FUNCTION__); // 		Piwik::profileend($profiler);
 		$periods = array();
 		
 		// we first compute every subperiod of the archive
@@ -22,6 +23,7 @@ class Piwik_SmartLoggent_Core_ArchiveProcessing_Period extends Piwik_ArchiveProc
 			
 			$periods[] = $archivePeriod;
 		}
+		//Piwik::profileend($profiler);
 		return $periods;
 	}
 	
@@ -32,8 +34,6 @@ class Piwik_SmartLoggent_Core_ArchiveProcessing_Period extends Piwik_ArchiveProc
 	 */
 	public function isThereSomeVisits()
 	{
-		// The data is fake, so we assume that there always are visits.
-		return true;
 		if(!is_null($this->isThereSomeVisits))
 		{
 			return $this->isThereSomeVisits;

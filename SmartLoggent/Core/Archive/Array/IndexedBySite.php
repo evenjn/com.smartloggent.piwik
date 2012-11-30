@@ -33,12 +33,14 @@ class Piwik_SmartLoggent_Core_Archive_Array_IndexedBySite extends Piwik_Archive_
 	 */
 	function __construct($sites, $strPeriod, $strDate, Piwik_Segment $segment, $_restrictSitesToLogin)
 	{
+// 		$profiler = Piwik::profilestart(get_class($this).'::'.__FUNCTION__); // 		Piwik::profileend($profiler);
 		foreach($sites as $idSite)
 		{
 			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $strPeriod, $strDate, $segment, $_restrictSitesToLogin );
 			$this->archives[$idSite] = $archive;
 		}
 		ksort( $this->archives );
+// 		Piwik::profileend($profiler);
 	}
 
 	/**

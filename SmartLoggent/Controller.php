@@ -1,6 +1,11 @@
 <?php
 class Piwik_SmartLoggent_Controller extends Piwik_Controller
 {
+	private $metrics_with_topN = array(
+			Piwik_SmartLoggent_API::INDEX_NB_VISITS
+			,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+			,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+	);
 
 	private $array_metrics = array(
 			Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
@@ -95,8 +100,25 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 	public function classes()
 	{
 		$view = new Piwik_View('SmartLoggent/templates/classOverview.tpl');
+		
+		// In order to retrieve information of visits&actions partitioned by query
+		// class where the class is a top-level class, we use the getClass API
+		// method with a segment constraint that filters out all the classes that
+		// are not top-level
+		//  
+		// we store the original segment
+		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
+		$originalSegment = $segment;
+		// we modify the current segment to set the desired constratint
+		$_GET['segment'] = Piwik_SmartLoggent_SegmentEditor::set(Piwik_SmartLoggent_API::SEG_TOPCLASS, "==", '1', $originalSegment);
+		// we get the data
 		$view->class = $this->getClass(true);
 
+		// we compute the classes to be shown as rows in the evolution graph
+		// the top 4 (sorted by number of queries) top-level classes 
+		$autoRows = self::getTop(Piwik_SmartLoggent_API::DIM_CLASS, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 4);
+		$_GET['autorows'] = implode(',', $autoRows['labels']);
+		
 		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
 				'action' => 'index',
 		));
@@ -121,23 +143,56 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 
 		$view->classMetrics = $classMetrics;
 		$view->detailcharts = $detailcharts;
-
-		$view->evolution = $this->getClassEvolution(false, true);
+		
+		$_GET['segment'] = $originalSegment;
+		
+// 		// in addition to that, we allow the user to display additional rows
+// 		// with this global variable we set the data that will be available to the
+// 		// user in the rowpicker
+// 		$generalRows = self::getTop(Piwik_SmartLoggent_API::DIM_CLASS, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 2);
+// 		// we merge the arrays
+// 		$generalRowsIds = $generalRows['ids'];
+		$autoRowsIds = $autoRows['ids'];
+// 		foreach ($autoRowsIds as $ar)
+// 		{
+// 			if (!in_array($ar, $generalRowsIds))
+// 				$generalRowsIds[] = $ar;
+// 		}
+		$_GET['segment'] = Piwik_SmartLoggent_SegmentEditor::set(Piwik_SmartLoggent_API::SEG_CLASS, '==', implode('_', $autoRowsIds), $originalSegment);
+		$view->evolution = $this->getClassByQueriesEvolution(false, true);
 
 		echo $view->render();
+		$_GET['autorows'] = '';
+		$_GET['segment'] = $originalSegment;
 	}
 
 	public function singleClasses() {
 		$view = new Piwik_View('SmartLoggent/templates/SingleClasses.tpl');
-		$class = Piwik_Common::getRequestVar("class");
-		$view->searchPhraseClass = $this->getSearchPhraseClassData('getSearchPhraseClassData', $class);
-		$view->class = $class;
+		// we get the parameters from the URL.
+		$className = Piwik_Common::getRequestVar("className");
+		$classId = Piwik_Common::getRequestVar("classId");
+		$decodedClassName = Piwik_SmartLoggent_API::decodeString($className);
+		
+		// we set the segment constraint to filter out information that is not
+		// the class the user requested
+		$originalSegment = Piwik_Common::getRequestVar('segment', false, 'string');
+		$_GET['segment'] = Piwik_SmartLoggent_SegmentEditor::set(Piwik_SmartLoggent_API::SEG_CLASS, "==", $classId, $originalSegment);
+		
+		$searchPhraseClass = Piwik_ViewDataTable::factory();
+		$searchPhraseClass->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->searchPhraseClass = $this->configureUsualTable($searchPhraseClass, 'LOC_SL_Column_Label_SearchPhrase', true, 20, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/singleClassDatatable.tpl');
+
+		$view->class = $decodedClassName;
 
 		$singleClassesMetrics = array();
 		$detailcharts= array();
 
-		foreach ($this->array_metrics as $metric) {
-			$result_singleClassesMetrics = $this->getSearchPhraseClassMetricsGraph($metric);
+
+		foreach ($this->metrics_with_topN as $metric) {
+			// the segment constraint is set, so API methods will
+			// return information that is filtered by class
+			$result_singleClassesMetrics = $this->getSearchPhraseByAnonymous($metric);
+// 			$result_singleClassesMetrics = $this->getSearchPhraseClassMetricsGraph($metric);
 			$result_detail_evolution_chart = $this->getSingleClassDetailEvolution("getSingleClassDetailEvolutionData", array('metric' => $metric));
 
 			$singleClassesMetrics[] = $result_singleClassesMetrics;
@@ -146,9 +201,33 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
 
 		}
-
+		$_GET['segment'] = $originalSegment;
 		$view->singleClassesMetrics = $singleClassesMetrics;
-		$view->singleClassesEvolution = $this->getSingleClassPhraseEvolution();
+		// evolution: we setup the segment constraints to include only the focused class
+		
+
+		$autoRows = array('labels' => array($decodedClassName), 'ids' => array($classId));
+		$_GET['autorows'] = implode(',', $autoRows['labels']);
+		
+// 		// in addition to that, we allow the user to display additional rows
+// 		// with this global variable we set the data that will be available to the
+// 		// user in the rowpicker
+// 		$generalRows = self::getTop(Piwik_SmartLoggent_API::DIM_CLASS, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 2);
+// 		// we merge the arrays
+// 		$generalRowsIds = $generalRows['ids'];
+		$autoRowsIds = $autoRows['ids'];
+// 		foreach ($autoRowsIds as $ar)
+// 		{
+// 			if (!in_array($ar, $generalRowsIds))
+// 				$generalRowsIds[] = $ar;
+// 		}
+		$_GET['segment'] = Piwik_SmartLoggent_SegmentEditor::set(Piwik_SmartLoggent_API::SEG_CLASS, '==', implode('_', $autoRowsIds), $originalSegment);
+		
+		
+		
+		$_GET['segment'] = Piwik_SmartLoggent_SegmentEditor::set(Piwik_SmartLoggent_API::SEG_CLASS, '==', $classId, $originalSegment);
+		$view->singleClassesEvolution = $this->getClassByQueriesEvolution(false, true);
+// 		$view->singleClassesEvolution = $this->getSingleClassPhraseEvolution();
 		$view->detailcharts = $detailcharts;
 		$view->namedEntitiesDistribution = $this->getSingleClassNamedEntitiesDistributionPie();
 		$view->namedEntitiesPopularity = $this->getSingleClassNamedEntitiesPopularityGraph();
@@ -160,9 +239,20 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 
 	public function subClasses() {
 		$view = new Piwik_View('SmartLoggent/templates/SubClasses.tpl');
-		$class = Piwik_Common::getRequestVar("class");
+		// we get the parameters from the URL.
+		$className = Piwik_Common::getRequestVar("className");
+		$classId = Piwik_Common::getRequestVar("classId");
+		$decodedClassName = Piwik_SmartLoggent_API::decodeString($className);
+		
+		
+		$originalSegment = Piwik_Common::getRequestVar('segment', false, 'string');
+		$segment = Piwik_SmartLoggent_SegmentEditor::set("SLSuperClass", "==", $classId, $originalSegment);
+		$segment = Piwik_SmartLoggent_SegmentEditor::set("SLDirectSubClass", "==", '1', $segment);
+		$_GET['segment'] = $segment;
 		$view->subClasses = $this->getSubClasses('getSearchPhraseClassData', $class);
-		$view->class = $class;
+		
+		$_GET['segment'] = $originalSegment;
+		$view->class = $decodedClassName;
 		
 		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
 				'action' => 'index',
@@ -174,8 +264,8 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$detailcharts = array();
 		
 		foreach ($this->array_metrics as $metric) {
-			$result_subClassMetrics = $this->getSubClassesMetricGraph($class, $metric);
-			$result_detail_evolution_chart = $this->getSubClassDetailEvolution("getSubClassDetailEvolutionData", array('metric' => $metric, 'class' => $class));
+			$result_subClassMetrics = $this->getSubClassesMetricGraph($decodedClassName, $metric);
+			$result_detail_evolution_chart = $this->getSubClassDetailEvolution("getSubClassDetailEvolutionData", array('metric' => $metric, 'class' => $decodedClassName));
 		
 			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
 			$detailcharts[$metric]['metric'] = $metric;
@@ -186,7 +276,7 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		
 		$view->subClassesMetrics = $subClassesMetrics;
 		$view->detailcharts = $detailcharts;
-		$view->subClassesEvolution = $this->getSubClassesEvolution($class);
+		$view->subClassesEvolution = $this->getSubClassesEvolution($decodedClassName);
 		
 		echo $view->render();
 	}
@@ -482,54 +572,79 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 
-	public function getSearchPhraseClassData($source=-1, $class=-1) {
-
-		static $sf;
-		static $src;
-		if ($class != -1) $cl = $class;
-		if ($source != -1) $src = $source;
-
-		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
-		$period = Piwik_Common::getRequestVar('period', '', 'string');
-		$date = Piwik_Common::getRequestVar('date', '', 'string');
-		$segment = Piwik_Common::getRequestVar('date', false, 'string');
-
-		$dataTable = Piwik_SmartLoggent_API::$src($idSite, $period, $date, $segment, array('class' => $cl));
-
-		$view = Piwik_ViewDataTable::factory();
-		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
-		$view->setDatatable($dataTable);
-		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_Class', true, 20, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/singleClassDatatable.tpl');
-			
+	public function getSearchPhraseByAnonymous($metric=-1)
+	{
+		static $m;
+		if ($metric != -1) $m = $metric;
+		$limit = 3;
+		$originalSegment = Piwik_Common::getRequestVar('segment', false, 'string');
+		$tops = self::getTop(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, $metric, $limit);
+		$_GET['segment'] = Piwik_SmartLoggent_SegmentEditor::set(Piwik_SmartLoggent_API::SEG_SEARCHPHRASE, '==', implode('_', $tops['ids']), $originalSegment);
+		$result= $this->getSearchPhraseByAnonymousRecursive($m);
+		
+		$_GET['segment'] = $originalSegment;
 		return $result;
 	}
+	
+	public function getSearchPhraseByAnonymousRecursive($metric=-1)
+	{
+		static $m;
+		if ($metric != -1) $m = $metric;
+		return $this->getSearchPhraseBy(__FUNCTION__, $m, true);
+	}
+
+	private function getSearchPhraseBy($function, $metric, $fetch = false)
+	{
+// 		$profiler = Piwik::profilestart('Piwik_SmartLoggent_Controller::'.__FUNCTION__); // 		Piwik::profileend($profiler);
+
+		$view = Piwik_SmartLoggent_Core_ViewDataTable::factory('graphVerticalBar');
+		$view->init($this->pluginName, $function, 'SmartLoggent.getSearchPhrase');
+		
+		
+		$view->setColumnsToDisplay(array('label',	$metric));
+		$view->setColumnTranslation($metric,  Piwik_Translate($this->array_metrics_titles[$metric]));
+		$view->setSortedColumn($metric, 'desc');
+// 		$view->setAxisYUnit($metric);
+		$view->disableSearchBox();
+		$view->setUniqueIdViewDataTable ("graph_gn_detail_" . $metric);
+		// The following line uses a custom template that breaks the footer
+		$view->setTemplate("SmartLoggent/templates/SearchPhraseGraphDetail.tpl");
+		// so we use this
+		$view->disableShowAllColumns();
+		$view->disableFooter();
+		$result = $this->renderView($view, $fetch);
+// 		Piwik::profileend($profiler);
+		return $result;
+	}
+	
 
 	public function getSearchPhraseClassMetricsGraph($metric=-1, $class=-1)
 	{
 		static $mt;
-		static $cl;
+// 		static $cl;
 		if ($metric != -1) $mt = $metric;
-		if ($class != -1) $cl = $class;
+// 		if ($class != -1) $cl = $class;
 
-		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
-		$period = Piwik_Common::getRequestVar('period', '', 'string');
-		$date = Piwik_Common::getRequestVar('date', '', 'string');
-		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+// 		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+// 		$period = Piwik_Common::getRequestVar('period', '', 'string');
+// 		$date = Piwik_Common::getRequestVar('date', '', 'string');
+// 		$segment = Piwik_Common::getRequestVar('date', false, 'string');
 
-		$dataTable = Piwik_SmartLoggent_API::getSearchPhraseClassMetricData($idSite, $period, $date, $segment, array('class' => $cl, 'metric' => $metric));
+// 		$dataTable = Piwik_SmartLoggent_API::getSearchPhraseClassMetricData($idSite, $period, $date, $segment, array('class' => $cl, 'metric' => $metric));
 
-		$view = Piwik_ViewDataTable::factory('graphVerticalBar');
-		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase' );
-		$view->disableShowAllColumns();
-		$view->setColumnsToDisplay(array('label', $mt));
-		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
-		$view->setSortedColumn($mt, 'desc');
-		$view->disableFooter();
-		$view->setAxisYUnit($mt);
-		$view->setUniqueIdViewDataTable ("graph_gn_detail_" . $mt);
-		$view->setTemplate("SmartLoggent/templates/SearchPhraseGraphDetail.tpl");
-		$result = $this->renderView($view, true);
-		return $result;
+// 		$view = Piwik_ViewDataTable::factory('graphVerticalBar');
+// 		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase' );
+// 		$view->disableShowAllColumns();
+// 		$view->setColumnsToDisplay(array('label', $mt));
+// 		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
+// 		$view->setSortedColumn($mt, 'desc');
+// 		$view->disableFooter();
+// 		$view->setAxisYUnit($mt);
+// 		$view->setUniqueIdViewDataTable ("graph_gn_detail_" . $mt);
+// 		$view->setTemplate("SmartLoggent/templates/SearchPhraseGraphDetail.tpl");
+// 		$result = $this->renderView($view, true);
+// 		return $result;
+return $this->getSearchPhraseBy(__FUNCTION__, $mt, true);
 	}
 
 
@@ -589,6 +704,11 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 	
+	
+	/**
+	 * To delete
+	 * @param unknown_type $class
+	 */
 	public function getSingleClassPhraseEvolution($class = -1)
 	{
 		static $cl;
@@ -669,23 +789,11 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 
-	public function getSubClasses($fetch=false, $limit=20, $class=-1) {
-	
-		static $cl;
-		if ($class != -1) $cl = $class;
-	
-		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
-		$period = Piwik_Common::getRequestVar('period', '', 'string');
-		$date = Piwik_Common::getRequestVar('date', '', 'string');
-		$segment = Piwik_Common::getRequestVar('date', false, 'string');
-	
-		$dataTable = Piwik_SmartLoggent_API::getSubClassesData($idSite, $period, $date, $segment, array('searchPhrase' => '$sf'));
-	
+	public function getSubClasses($fetch=false) {
 		$view = Piwik_ViewDataTable::factory();
-		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
-		$view->setDatatable($dataTable);
-		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/subClassDatatable.tpl');
-			
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getClass');
+		$limit=20;
+		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_Class', $fetch, $limit, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/classDatatable.tpl');
 		return $result;
 	}
 	
@@ -776,13 +884,6 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$view->setLimit(5);
 		$view->setUniqueIdViewDataTable ("graph_gn_evolution" . floor(rand(0,1000)));
 		$result = $this->renderView($view, true);
-		return $result;
-	}
-	
-	public function getClassEvolution( $columns = false, $fetch = false)
-	{
-		$view = $this->genericEvolution(__FUNCTION__, Piwik_SmartLoggent_API::DIM_CLASS, false, true, $columns);
-		$result = $this->renderView($view, $fetch);
 		return $result;
 	}
 
@@ -1124,128 +1225,41 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 	
- 	/**
+	/*
+	 * You can't pass parameters. This method is designed to
+	 * invoke itself without any arguments.
 	 *
-	 * @param unknown_type $function
-	 * @param unknown_type $apimethod
-	 * @param unknown_type $rowpicker currently the rowpicker cannot be displayed, so the only legal value is false.
-	 * @param unknown_type $footer
-	 * @param unknown_type $columns
+	 * This is how Piwik_ViewDataTable::factory('graphEvolution') works
 	 */
-	private function genericEvolution($function, $dimension, $rowpicker = false, $footer = true, $columns = false)
+	public function getClassByQueriesEvolution( $columns = false, $fetch = false)
 	{
-		/*
-		 * You can't pass parameters. Seriously. This method is designed to
-		* invoke itself without any arguments.
-		*
-		* This is how Piwik_ViewDataTable::factory('graphEvolution') works
-		*/
-		$metric = Piwik_SmartLoggent_API::INDEX_NB_QUERIES;
-		$view = $this->getLastUnitGraph($this->pluginName, $function, 'SmartLoggent.get'.$dimension);
-
-		/*
-		 * Don't disable the footer unless you also disable the rowpicker. See the following bug.
-		* http://dev.piwik.org/trac/ticket/3313
-		*/
-		if (!$rowpicker)
-		{
-			/* but you may decide to disable the rowpicker and still keep the footer */
-			if (!$footer)
-				$view->disableFooter();
-		}
-
-		/*
-		 * CATEGORIES SELECTION (ROWS)
-		*
-		* The visible rows are either chosen by the user using the rowPicker,
-		* or the rows that correspond to the top items according to a metric
-		*
-		* If the user has picked some rows manually, they appear as a 'rows'
-		* parameter.
-		*/
-		$visibleRows = Piwik_Common::getRequestVar('rows', false);
-		if ($visibleRows !== false)
-		{
-			/* this happens when the row picker has been used */
-			$visibleRows = Piwik::getArrayFromApiParameter($visibleRows);
-		}
-		else
-		{
-			// we had a mechanism to specify the exact elements to show (the top 5)
-			// but now this mechanism must be changed to fit wit the new API.
-			// this mechanism is crucial to display only the few relevant items.
-			//
-			// the idea is to invoke one of the API methods that return the
-			// identifiers of the top items ranked according the desired metric, such
-			// as
-			//
-			// getTopClass_NB_UNIQ_VISITORS
-			//
-			// then either modify the segment so that the elements retrieved are only
-			// those, or let the API know it in some other way.
-				
-			if (Piwik_Common::getRequestVar('smartloggent_reset_filter_evolution', 'yes', 'string') == 'yes')
-			{
-				$_GET['smartloggent_reset_filter_evolution'] = 'no';
-				$_GET['smartloggent_filter_evolution'] = '';
-				$visibleRows = self::getTop(Piwik_SmartLoggent_API::DIM_CLASS, $metric);
-					
-				if ($rowpicker)
-				{
-					$view->setParametersToModify(array('rows' => implode(',', $visibleRows)));
-				}
-				else
-				{
-					$filter_tops_array= array();
-					foreach ($visibleRows as $lala)
-					{
-						$encoded = Piwik_SmartLoggent_API::encodeString($lala);
-						$filter_tops_array [] = $encoded;
-					}
-					$_GET['smartloggent_filter_evolution'] = implode(',', $filter_tops_array);
-				}
-			}
-		}
-		if ($rowpicker)
-			$view->addRowPicker($visibleRows);
-
-		/* METRICS LABELS (COLUMNS) */
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_QUERIES, Piwik_Translate('LOC_SL_Column_NB_QUERIES'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS, Piwik_Translate(
-				'General_ColumnNbUniqVisitors'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS, Piwik_Translate(
-				'General_ColumnNbVisits'));
-
-		/*
-		 *  METRICS SELECTION (COLUMNS)
-		*
-		*  The metrics to display can be set programmatically with the $columns
-		*  argumnent.
-		*/
-		if(empty($columns))
-		{
-				
-			$columns = Piwik_Common::getRequestVar('columns', Piwik_SmartLoggent_API::INDEX_NB_QUERIES);
-			$columns = Piwik::getArrayFromApiParameter($columns);
-		}
-		$columns = !is_array($columns) ? array($columns) : $columns;
-		$view->setColumnsToDisplay($columns);
-
-		/*
-		 * It is not possible to use the row picker when there are no selectable
-		* columns.
-		*/
-		if ($rowpicker)
-			$view->setSelectableColumns(array($metric, Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS));
-		return $view;
+// 		$profiler = Piwik::profilestart('Piwik_SmartLoggent_Controller::'.__FUNCTION__); // 		Piwik::profileend($profiler);
+// 		Piwik::log('Piwik_SmartLoggent_Controller::'.__FUNCTION__.' segment is '.$_GET['segment']);
+		$view = $this->getLastUnitGraph($this->pluginName, __FUNCTION__, 'SmartLoggent.get'.Piwik_SmartLoggent_API::DIM_CLASS);
+		$rowpicker = false;
+		$footer = false;
+		Piwik_SmartLoggent_Controller_Evolution::configureEvolution
+		(
+			$view
+		,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+		,	$rowpicker
+		,	$footer
+		,	$columns);
+		// The following line breaks the rowpicker
+		$view->setUniqueIdViewDataTable ("graph_gn_evolution" . floor(rand(0,1000)));
+		$result = $this->renderView($view, $fetch);
+// 		Piwik::profileend($profiler);
+		return $result;
 	}
+	
 
-	public static function getTop($dimension, $metric)
+	public static function getTop($dimension, $metric, $limit, $segment = false)
 	{
 		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
 		$period = Piwik_Common::getRequestVar('period', '', 'string');
 		$date = Piwik_Common::getRequestVar('date', '', 'string');
-		$segment = Piwik_Common::getRequestVar('date', false, 'string');
-		return Piwik_SmartLoggent_API::getInstance()->getTop(Piwik_SmartLoggent_API::INDEX_NB_VISITS, $idSite, $period, $date, $segment, $dimension, $metric);
+		$segment = Piwik_Common::getRequestVar('segment', $segment, 'string');
+		$result = Piwik_SmartLoggent_API::getInstance()->getTop($idSite, $period, $date, $segment, $dimension, $metric, $limit);
+		return $result;
 	}
 }

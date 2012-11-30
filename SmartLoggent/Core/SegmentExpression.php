@@ -69,6 +69,18 @@ class Piwik_SmartLoggent_Core_SegmentExpression
             $valueRightMember = $matches[3];
             
             if ($leftMember)
+            {
+            	
+    					if (in_array($leftMember, Piwik_SmartLoggent_API::$SEGMENTSTOESCAPE))
+            	{
+            		$encoded = $valueRightMember;
+//             		Piwik::log("DECODING $encoded");
+            		// here we should decode
+            		$decoded = Piwik_SmartLoggent_API::decodeString($encoded);
+//             		Piwik::log("INTO $decoded");
+            		$valueRightMember = $decoded;
+            	}
+
             $parsedSubExpressions[] = array( 
                 self::INDEX_BOOL_OPERATOR => $operator,
                 self::INDEX_OPERAND => array(
@@ -76,6 +88,7 @@ class Piwik_SmartLoggent_Core_SegmentExpression
                     $operation, 
                     $valueRightMember, 
             ));
+            }
         }
         $this->parsedSubExpressions = $parsedSubExpressions;
         
@@ -105,6 +118,7 @@ class Piwik_SmartLoggent_Core_SegmentExpression
 	 */
     public function parseSubExpressionsIntoSqlExpressions(&$availableTables=array())
     {
+		//$profiler = Piwik::profilestart('Piwik_SmartLoggent_Core_SegmentExpression::'.__FUNCTION__); // 		Piwik::profileend($profiler);
     	
     	
         $sqlSubExpressions = array();
@@ -129,6 +143,7 @@ class Piwik_SmartLoggent_Core_SegmentExpression
         }
         
         $this->tree = $sqlSubExpressions;
+        // Piwik::profileend($profiler);
     }
 
 	/**

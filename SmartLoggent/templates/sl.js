@@ -1,7 +1,5 @@
 function SL_InteractiveTable(selector) {
-	
-  $(selector + ' table tbody tr').css({'background-color':'red'});
-	$(selector + ' table tbody tr')
+	$(selector + ' table tbody tr td span.label')
 	.css('cursor', 'pointer')
 	.click(function() {
 		var $this = $(this);

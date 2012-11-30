@@ -26,6 +26,7 @@ class Piwik_SmartLoggent_Core_Archive_Array_IndexedByDate extends Piwik_Archive_
 	 */
 	public function __construct(Piwik_Site $oSite, $strPeriod, $strDate, Piwik_Segment $segment)
 	{
+// 		$profiler = Piwik::profilestart(get_class($this).'::'.__FUNCTION__); // 		Piwik::profileend($profiler);
 		$rangePeriod = new Piwik_Period_Range($strPeriod, $strDate, $oSite->getTimezone());
 		foreach($rangePeriod->getSubperiods() as $subPeriod)
 		{
@@ -35,6 +36,7 @@ class Piwik_SmartLoggent_Core_Archive_Array_IndexedByDate extends Piwik_Archive_
 			$this->archives[] = $archive;
 		}
 		$this->setSite($oSite);
+// 		Piwik::profileend($profiler);
 	}
 
 	/**
