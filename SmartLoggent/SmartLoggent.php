@@ -183,7 +183,6 @@ class Piwik_SmartLoggent extends Piwik_Plugin
 			'LOC_SL_SubmenuSearchPhrases' => 'searchPhrase',
 			'LOC_SL_SubmenuClasses' => 'classes',
 			'LOC_SL_SubmenuClustering' => 'clustering',
-			'LOC_SL_SubmenuNamedEntities' => 'namedEntities',
 			'LOC_SL_SubmenuNamedEntityTypes' => 'namedEntityType',
 			'LOC_SL_SubmenuSearchWords' => 'searchWords',
 			'LOC_SL_SubmenuLanguages' => 'languages',

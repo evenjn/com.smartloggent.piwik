@@ -724,6 +724,203 @@ class Piwik_SmartLoggent_API
 	
 	}
 	
+	public function getNamedEntitiesTypes($idSite, $period, $date, $segment = false)
+	{
+		// TODO @CELI: return a dataTable for named entities types ([55])
+	
+		$subclass[1] = new Piwik_DataTable_Row();
+		$subclass[1]->addColumn('label', 'Cities');
+		$subclass[1]->addMetadata('type', "");
+		$subclass[1]->addMetadata('annotation', "");
+		$subclass[2] = new Piwik_DataTable_Row();
+		$subclass[2]->addColumn('label', 'History');
+		$subclass[2]->addMetadata('type', "");
+		$subclass[2]->addMetadata('annotation', "");
+		$subclass[3] = new Piwik_DataTable_Row();
+		$subclass[3]->addColumn('label', 'Region');
+		$subclass[3]->addMetadata('type', "");
+		$subclass[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($subclass);
+		return $dataTable;
+	
+	}
+	
+	public function getNamedEntitiesEvolution($idSite, $period, $date, $segment = false)
+	{
+		// TODO @CELI: return a dataTable for evolution NE graph ([57])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getNEDetailEvolutionData($idSite, $period, $date, $segment = false, $metric)
+	{
+		// TODO @CELI: return a dataTable for evolution detail for named entities graph ([58])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleNamedEntityData($idSite, $period, $date, $segment = false, $netype)
+	{
+		// TODO @CELI: return a dataTable with named entities for single named entity type ([60])
+	
+		$subclass[1] = new Piwik_DataTable_Row();
+		$subclass[1]->addColumn('label', 'Named entity 1');
+		$subclass[1]->addMetadata('type', "");
+		$subclass[1]->addMetadata('annotation', "");
+		$subclass[2] = new Piwik_DataTable_Row();
+		$subclass[2]->addColumn('label', 'Named entity 2');
+		$subclass[2]->addMetadata('type', "");
+		$subclass[2]->addMetadata('annotation', "");
+		$subclass[3] = new Piwik_DataTable_Row();
+		$subclass[3]->addColumn('label', 'Named entity 3');
+		$subclass[3]->addMetadata('type', "");
+		$subclass[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($subclass);
+		return $dataTable;
+	
+	}
+	
+	public function getNEEvolutionData($idSite, $period, $date, $segment = false, $namedEntityType)
+	{
+		// TODO @CELI: return a dataTable for evolution for for named entities of $namedEntityType ([62])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleNamedEntityEvolutionData($idSite, $period, $date, $segment = false, $params)
+	{
+		// TODO @CELI: return a dataTable for single named entity type evolution detail ([63])
+	
+		$namedEntityType = $params['namedEntityType'];
+		$metric = $params['metric'];
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSearchPhrasesNamedEntityType($idSite, $period, $date, $segment = false, $namedEntityType)
+	{
+		// TODO @CELI: return a dataTable for search phrases for named entities types ([64])
+	
+		$subclass[1] = new Piwik_DataTable_Row();
+		$subclass[1]->addColumn('label', 'Search phrases 1');
+		$subclass[1]->addMetadata('type', "");
+		$subclass[1]->addMetadata('annotation', "");
+		$subclass[2] = new Piwik_DataTable_Row();
+		$subclass[2]->addColumn('label', 'Search phrases 2');
+		$subclass[2]->addMetadata('type', "");
+		$subclass[2]->addMetadata('annotation', "");
+		$subclass[3] = new Piwik_DataTable_Row();
+		$subclass[3]->addColumn('label', 'Search phrases 3');
+		$subclass[3]->addMetadata('type', "");
+		$subclass[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($subclass);
+		return $dataTable;
+	
+	}
+	
+	public function getNESearchPhraseEvolutionData($idSite, $period, $date, $segment = false, $searchPhrase)
+	{
+		// TODO @CELI: return a dataTable for evolution for for searchPhrase for a named entity type ([64])
+	
+		$evolution = array(
+				'1' => array(2=>3),
+				'2' => array(2=>1),
+				'3' => array(2=>4),
+		);
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleNamedEntityClassesData($idSite, $period, $date, $segment = false, $netype)
+	{
+		// TODO @CELI: return a dataTable with classes for single named entity type ([68])
+	
+		$subclass[1] = new Piwik_DataTable_Row();
+		$subclass[1]->addColumn('label', 'Class 1');
+		$subclass[1]->addMetadata('type', "");
+		$subclass[1]->addMetadata('annotation', "");
+		$subclass[2] = new Piwik_DataTable_Row();
+		$subclass[2]->addColumn('label', 'Class 2');
+		$subclass[2]->addMetadata('type', "");
+		$subclass[2]->addMetadata('annotation', "");
+		$subclass[3] = new Piwik_DataTable_Row();
+		$subclass[3]->addColumn('label', 'Class 3');
+		$subclass[3]->addMetadata('type', "");
+		$subclass[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($subclass);
+		return $dataTable;
+	
+	}
+	
+	public function getSingleNamedEntityClustersData($idSite, $period, $date, $segment = false, $netype)
+	{
+		// TODO @CELI: return a dataTable with clusters for single named entity type ([69])
+	
+		$subclass[1] = new Piwik_DataTable_Row();
+		$subclass[1]->addColumn('label', 'Cluster 1');
+		$subclass[1]->addMetadata('type', "");
+		$subclass[1]->addMetadata('annotation', "");
+		$subclass[2] = new Piwik_DataTable_Row();
+		$subclass[2]->addColumn('label', 'Cluster 2');
+		$subclass[2]->addMetadata('type', "");
+		$subclass[2]->addMetadata('annotation', "");
+		$subclass[3] = new Piwik_DataTable_Row();
+		$subclass[3]->addColumn('label', 'Cluster 3');
+		$subclass[3]->addMetadata('type', "");
+		$subclass[3]->addMetadata('annotation', "");
+	
+		$dataTable = new Piwik_DataTable();
+		$dataTable->addRowsFromArray($subclass);
+		return $dataTable;
+	
+	}
 	public function get($idSite, $period, $date, $segment = false, $dimension = self::DIM_SEARCHPHRASE)
 	{
 		$tops_string = Piwik_Common::getRequestVar('smartloggent_filter_evolution', '');

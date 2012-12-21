@@ -266,7 +266,92 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		
 		echo $view->render();
 	}
+
+	public function namedEntityType()
+	{
+		$view = new Piwik_View('SmartLoggent/templates/namedEntitiesTypesOverview.tpl');
+	
+		$NEMetrics = array();
+		$detailcharts = array();
 		
+		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
+				'action' => 'index',
+		));
+		$urlSl = Piwik_Url::getCurrentQueryStringWithParametersModified(array('action' => 'singleNamedEntityType'));
+		$view->singleNEUrl = $urlIndex . "#" . substr($urlSl, 1);
+		
+		$view->namedEntitiesTypes = $this->getNamedEntitiesTypes(true);
+		
+		foreach ($this->array_metrics as $metric) {
+			$result_NEMetrics = $this->getNamedEntitiesMetricGraph($metric);
+			$result_detail_evolution_chart = $this->getNEDetailEvolution($metric);
+	
+			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
+			$detailcharts[$metric]['metric'] = $metric;
+			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
+	
+			$NEMetrics[] = $result_NEMetrics;
+		}
+		
+		$view->NEMetrics = $NEMetrics;
+		$view->detailcharts = $detailcharts;
+		
+		$view->evolution = $this->getNamedEntitiesEvolution();
+		
+		echo $view->render();
+	
+	}
+	
+	public function singleNamedEntityType() {
+		$view = new Piwik_View('SmartLoggent/templates/singleNamedEntityTypeOverview.tpl');
+		$namedEntityType = Piwik_Common::getRequestVar("ne");
+		
+		$view->namedEntityType = $namedEntityType;
+	
+		$view->singleNamedEntities = $this->getSingleNamedEntityData(true, 20, $namedEntityType, 'getSingleNamedEntityData');
+		
+		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
+				'action' => 'index',
+		));
+		$urlSl = Piwik_Url::getCurrentQueryStringWithParametersModified(array('action' => 'singleNamedEntity'));
+		$view->singleNEUrl = $urlIndex . "#" . substr($urlSl, 1);
+		
+		$singleNEMetrics = array();
+		$detailcharts= array();
+		$searchPhrasesDetailMetrics = array();
+				
+		foreach ($this->array_metrics as $metric) {
+			$result_NEMetrics = $this->getSingleNEMetricsGraph($metric);
+			$result_detail_evolution_chart = $this->getNamedEntityTypeDetailEvolution("getNamedEntityTypeDetailEvolutionData", array('namedEntityType' => $namedEntityType, 'metric' => $metric));
+			
+			$result_NESearchPhrasesDetailMetrics = $this->getSingleNESearchPhrasesMetricsGraph($metric);
+			
+			$singleNEMetrics[] = $result_NEMetrics;
+			
+			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
+			$detailcharts[$metric]['metric'] = $metric;
+			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
+	
+			$searchPhrasesDetailMetrics[$metric]['chartmetric'] = $result_NESearchPhrasesDetailMetrics;
+			$searchPhrasesDetailMetrics[$metric]['metric'] = $metric;
+			$searchPhrasesDetailMetrics[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
+		}
+	
+		$view->singleNEMetrics = $singleNEMetrics;
+		$view->singleNEEvolution = $this->getNEEvolution($namedEntityType);
+		$view->detailcharts = $detailcharts;
+		
+		$view->searchPhrases = $this->getSearchPhrasesNamedEntityType(true, 20, $namedEntityType, "getSearchPhrasesNamedEntityType");
+		$view->searchPhrasesDetailMetrics = $searchPhrasesDetailMetrics;
+		$view->searchPhrasesEvolution = $this->getSingleNESearchPhrasesEvolutionGraph();
+		
+		$view->classes = $this->getSingleNamedEntityClassesData(true, 20, $namedEntityType, 'getSingleNamedEntityClassesData');
+		
+		$view->clusters = $this->getSingleNamedEntityClustersData(true, 20, $namedEntityType, 'getSingleNamedEntityClustersData');
+				
+		echo $view->render();
+	}
+	
 	public function getSearchPhrase($fetch=false, $limit=20, $metric=Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY)
 	{
 		$view = Piwik_ViewDataTable::factory();
@@ -531,7 +616,6 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$result = $this->renderView($view, true);
 		return $result;
 	}
-
 
 	public function getSingleClassVisitsEvolution($class = -1)
 	{
@@ -1033,31 +1117,6 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;
 	}
 	
-	public function configureUsualTable($view, $labelLocalization, $fetch=false, $limit=20, $sortedColumn=Piwik_SmartLoggent_API::INDEX_NB_QUERIES, $template)
-	{
-		$view->setColumnsToDisplay(array_merge(array('label'), $this->array_metrics));
-	
-		$view->setColumnTranslation('label', Piwik_Translate($labelLocalization));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_AVG_CLICKS, Piwik_Translate('LOC_SL_Column_AVG_CLICKS'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_AVG_RESULTS, Piwik_Translate('LOC_SL_Column_AVG_RESULTS'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY, Piwik_Translate('LOC_SL_Column_CLICK_PROBABILITY'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_FR_CLICKS, Piwik_Translate('LOC_SL_Column_FR_CLICKS'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_FR_QUERIES, Piwik_Translate('LOC_SL_Column_FR_QUERIES'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_CLICKS, Piwik_Translate('LOC_SL_Column_NB_CLICKS'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_QUERIES, Piwik_Translate('LOC_SL_Column_NB_QUERIES'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY, Piwik_Translate('LOC_SL_Column_WEIGHTED_CLICK_PROBABILITY'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS, Piwik_Translate('General_ColumnNbUniqVisitors'));
-		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS, Piwik_Translate('General_ColumnNbVisits'));
-	
-		$view->setSortedColumn($sortedColumn, 'desc');
-		$view->disableShowAllViewsIcons();
-		$view->disableShowAllColumns();
-		$view->setLimit($limit);
-		$view->setTemplate($template);
-		$result = $this->renderView($view, $fetch);
-		return $result;
-	}
-	
 	public function getSingleClusterNamedEntitiesDistributionPie($cluster)
 	{
 		static $cl;
@@ -1121,6 +1180,348 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$view->setUniqueIdViewDataTable ("graph_gn_ne_classification_");
 		$result = $this->renderView($view, true);
 	
+		return $result;
+	}
+	
+	public function getNamedEntitiesTypes($fetch=false, $limit=20)
+	{
+		$view = Piwik_ViewDataTable::factory();
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getNamedEntitiesTypes');
+		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/namedEntitiesTypesDatatable.tpl');
+			
+		return $result;
+	}
+	
+	public function getNamedEntitiesMetricGraph($metric=-1) {
+	
+		static $mt;
+		if ($metric != -1) $mt = $metric;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$dataTable = Piwik_SmartLoggent_API::getNamedEntitiesTypes($idSite, $period, $date, $segment);
+	
+		$view = Piwik_ViewDataTable::factory("graphVerticalBar");
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->setDatatable($dataTable);
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array('label', $mt));
+		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
+		$view->setSortedColumn($mt, 'desc');
+		$view->disableFooter();
+		$view->setAxisYUnit($mt);
+		$view->setUniqueIdViewDataTable ("graph_gn_" . $mt);
+		$view->setTemplate("SmartLoggent/templates/GraphMetric.tpl");
+		$result = $this->renderView($view, true);
+	
+		return $result;
+	}
+	
+	public function getNamedEntitiesEvolution()
+	{
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$view = Piwik_ViewDataTable::factory('graphEvolution');
+		$view->init( $this->pluginName,  __FUNCTION__,  'SmartLoggent.getSearchPhrase');
+	
+		$dataTable = Piwik_SmartLoggent_API::getClusterEvolution($idSite, $period, $date, $segment);
+		$view->setDatatable($dataTable);
+	
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array(Piwik_SmartLoggent_API::INDEX_NB_VISITS));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS,  Piwik_Translate($this->array_metrics_titles[Piwik_SmartLoggent_API::INDEX_NB_VISITS]));
+		$view->disableFooter();
+		$view->setLimit(5);
+		$view->setUniqueIdViewDataTable ("graph_gn_evolution" . floor(rand(0,1000)));
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+
+	public function getNEDetailEvolution($metric=-1)
+	{
+		static $mt;
+		if ($metric != -1) $mt = $metric;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$view = Piwik_ViewDataTable::factory('graphEvolution');
+		$view->init( $this->pluginName,  __FUNCTION__,  'SmartLoggent.getSearchPhrase');
+	
+		$dataTable = Piwik_SmartLoggent_API::getNEDetailEvolutionData($idSite, $period, $date, $segment, $metric);
+		$view->setDatatable($dataTable);
+	
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array(Piwik_SmartLoggent_API::INDEX_NB_VISITS));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS,  Piwik_Translate($this->array_metrics_titles[Piwik_SmartLoggent_API::INDEX_NB_VISITS]));
+		$view->disableFooter();
+		$view->setLimit(5);
+		$view->setUniqueIdViewDataTable ("graph_gn_evolution" . floor(rand(0,1000)));
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+	
+	public function getSingleNamedEntityData($fetch=false, $limit=20, $namedEntityType=-1, $source=-1) {
+	
+		static $net;
+		static $src;
+		if ($namedEntityType != -1) $net = $namedEntityType;
+		if ($source != -1) $src = $source;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$dataTable = Piwik_SmartLoggent_API::$src($idSite, $period, $date, $segment, array('namedEntityType' => '$nef'));
+	
+		$view = Piwik_ViewDataTable::factory();
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->setDatatable($dataTable);
+		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/singleNamedEntityTypeDatatable.tpl');
+			
+		return $result;
+	}
+	
+	public function getSingleNEMetricsGraph($metric=-1, $namedEntity=-1) {
+	
+		static $mt;
+		static $net;
+		if ($metric != -1) $mt = $metric;
+		if ($namedEntity != -1) $net = $namedEntity;
+		
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$dataTable = Piwik_SmartLoggent_API::getSingleNamedEntityData($idSite, $period, $date, $segment, $net);
+	
+		$view = Piwik_ViewDataTable::factory("graphVerticalBar");
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->setDatatable($dataTable);
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array('label', $mt));
+		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
+		$view->setSortedColumn($mt, 'desc');
+		$view->disableFooter();
+		$view->setAxisYUnit($mt);
+		$view->setUniqueIdViewDataTable ("graph_gn_" . $mt);
+		$view->setTemplate("SmartLoggent/templates/GraphMetric.tpl");
+		$result = $this->renderView($view, true);
+	
+		return $result;
+	}
+	
+	public function getNEEvolution($namedEntityType = -1)
+	{
+		static $net;
+		if ($namedEntityType != -1) $net = $namedEntityType;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$view = Piwik_ViewDataTable::factory('graphEvolution');
+		$view->init( $this->pluginName,  __FUNCTION__,  'SmartLoggent.getSearchPhrase');
+	
+		if ($net) {
+			$dataTable = Piwik_SmartLoggent_API::getNEEvolutionData($idSite, $period, $date, $segment, $net);
+			$view->setDatatable($dataTable);
+		}
+	
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array(Piwik_SmartLoggent_API::INDEX_NB_VISITS));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS,  Piwik_Translate($this->array_metrics_titles[Piwik_SmartLoggent_API::INDEX_NB_VISITS]));
+		$view->disableFooter();
+		$view->setLimit(5);
+		$view->setUniqueIdViewDataTable ("graph_gn_evolution" . floor(rand(0,1000)));
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+	
+	public function getNamedEntityTypeDetailEvolution($source=-1, $params = -1)
+	{
+		static $pars;
+	
+		if ($params != -1) $pars = $params;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$view = Piwik_ViewDataTable::factory('graphEvolution');
+		$view->init( $this->pluginName,  __FUNCTION__,  'SmartLoggent.getSearchPhrase');
+	
+		$dataTable = Piwik_SmartLoggent_API::getSingleNamedEntityEvolutionData($idSite, $period, $date, $segment, $pars);
+		$view->setDatatable($dataTable);
+	
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array(Piwik_SmartLoggent_API::INDEX_NB_VISITS));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS,  Piwik_Translate($this->array_metrics_titles[Piwik_SmartLoggent_API::INDEX_NB_VISITS]));
+		$view->disableFooter();
+		$view->setLimit(5);
+		$view->setUniqueIdViewDataTable ("graph_gn_evolution" . floor(rand(0,1000)));
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+	
+	public function getSearchPhrasesNamedEntityType($fetch=false, $limit=20, $namedEntityType=-1, $source=-1) {
+	
+		static $net;
+		static $src;
+		if ($namedEntityType != -1) $net = $namedEntityType;
+		if ($source != -1) $src = $source;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$dataTable = Piwik_SmartLoggent_API::$src($idSite, $period, $date, $segment, array('namedEntityType' => '$nef'));
+	
+		$view = Piwik_ViewDataTable::factory();
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->setDatatable($dataTable);
+		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/singleNamedEntityTypeSearchPhrasesDatatable.tpl');
+			
+		return $result;
+	}
+	
+	public function getSingleNESearchPhrasesMetricsGraph($metric=-1, $namedEntity=-1) {
+	
+		static $mt;
+		static $net;
+		if ($metric != -1) $mt = $metric;
+		if ($namedEntity != -1) $net = $namedEntity;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$dataTable = Piwik_SmartLoggent_API::getSearchPhrasesNamedEntityType($idSite, $period, $date, $segment, $net);
+	
+		$view = Piwik_ViewDataTable::factory("graphVerticalBar");
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->setDatatable($dataTable);
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array('label', $mt));
+		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
+		$view->setSortedColumn($mt, 'desc');
+		$view->disableFooter();
+		$view->setAxisYUnit($mt);
+		$view->setUniqueIdViewDataTable ("gn_graphSF" . $mt);
+		$view->setTemplate("SmartLoggent/templates/GraphMetric.tpl");
+		$result = $this->renderView($view, true);
+		
+		return $result;
+	}
+	
+	public function getSingleNESearchPhrasesEvolutionGraph($searchPhrase = -1)
+	{
+		static $sf;
+		if ($searchPhrase != -1) $sf = $searchPhrase;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$view = Piwik_ViewDataTable::factory('graphEvolution');
+		$view->init( $this->pluginName,  __FUNCTION__,  'SmartLoggent.getSearchPhrase');
+	
+		if ($sf) {
+			$dataTable = Piwik_SmartLoggent_API::getNESearchPhraseEvolutionData($idSite, $period, $date, $segment, $sf);
+			$view->setDatatable($dataTable);
+		}
+	
+		$view->disableShowAllColumns();
+		$view->setColumnsToDisplay(array(Piwik_SmartLoggent_API::INDEX_NB_VISITS));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS,  Piwik_Translate($this->array_metrics_titles[Piwik_SmartLoggent_API::INDEX_NB_VISITS]));
+		$view->disableFooter();
+		$view->setLimit(5);
+		$view->setUniqueIdViewDataTable ("graph_gn_sf_evolution" . floor(rand(0,1000)));
+		$result = $this->renderView($view, true);
+		return $result;
+	}
+	
+	public function getSingleNamedEntityClassesData($fetch=false, $limit=20, $namedEntityType=-1, $source=-1) {
+	
+		static $net;
+		static $src;
+		if ($namedEntityType != -1) $net = $namedEntityType;
+		if ($source != -1) $src = $source;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$dataTable = Piwik_SmartLoggent_API::$src($idSite, $period, $date, $segment, array('namedEntityType' => '$nef'));
+	
+		$view = Piwik_ViewDataTable::factory();
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->setDatatable($dataTable);
+		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/singleNamedEntityTypeClassesDatatable.tpl');
+			
+		return $result;
+	}
+	
+	public function getSingleNamedEntityClustersData($fetch=false, $limit=20, $namedEntityType=-1, $source=-1) {
+	
+		static $net;
+		static $src;
+		if ($namedEntityType != -1) $net = $namedEntityType;
+		if ($source != -1) $src = $source;
+	
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('date', false, 'string');
+	
+		$dataTable = Piwik_SmartLoggent_API::$src($idSite, $period, $date, $segment, array('namedEntityType' => '$nef'));
+	
+		$view = Piwik_ViewDataTable::factory();
+		$view->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
+		$view->setDatatable($dataTable);
+		$result = $this->configureUsualTable($view, 'LOC_SL_Column_Label_SearchPhrase', $fetch, $limit, Piwik_SmartLoggent_API::INDEX_NB_QUERIES, 'SmartLoggent/templates/singleNamedEntityTypeClustersDatatable.tpl');
+			
+		return $result;
+	}
+		
+	public function configureUsualTable($view, $labelLocalization, $fetch=false, $limit=20, $sortedColumn=Piwik_SmartLoggent_API::INDEX_NB_QUERIES, $template)
+	{
+		$view->setColumnsToDisplay(array_merge(array('label'), $this->array_metrics));
+	
+		$view->setColumnTranslation('label', Piwik_Translate($labelLocalization));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_AVG_CLICKS, Piwik_Translate('LOC_SL_Column_AVG_CLICKS'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_AVG_RESULTS, Piwik_Translate('LOC_SL_Column_AVG_RESULTS'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY, Piwik_Translate('LOC_SL_Column_CLICK_PROBABILITY'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_FR_CLICKS, Piwik_Translate('LOC_SL_Column_FR_CLICKS'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_FR_QUERIES, Piwik_Translate('LOC_SL_Column_FR_QUERIES'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_CLICKS, Piwik_Translate('LOC_SL_Column_NB_CLICKS'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_QUERIES, Piwik_Translate('LOC_SL_Column_NB_QUERIES'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY, Piwik_Translate('LOC_SL_Column_WEIGHTED_CLICK_PROBABILITY'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS, Piwik_Translate('General_ColumnNbUniqVisitors'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS, Piwik_Translate('General_ColumnNbVisits'));
+	
+		$view->setSortedColumn($sortedColumn, 'desc');
+		$view->disableShowAllViewsIcons();
+		$view->disableShowAllColumns();
+		$view->setLimit($limit);
+		$view->setTemplate($template);
+		$result = $this->renderView($view, $fetch);
 		return $result;
 	}
 	
