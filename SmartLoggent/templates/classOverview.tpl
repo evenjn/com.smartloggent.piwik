@@ -12,13 +12,13 @@
 {literal}
 <script>
 
-function showSingleClasses(class_str) {
-	newurl = {/literal}'{$singleClassUrl}'{literal} + "&class=" + class_str; 
+function showSingleClasses(class_name, class_id) {
+	newurl = {/literal}'{$singleClassUrl}'{literal} + "&className=" + class_name + "&classId=" + class_id; 
 	document.location = newurl;
 }
 
-function showSubClasses(class_str) {
-	newurl = {/literal}'{$subClassUrl}'{literal} + "&class=" + class_str; 
+function showSubClasses(class_name, class_id) {
+	newurl = {/literal}'{$subClassUrl}'{literal} + "&className=" + class_name + "&classId=" + class_id; 
 	document.location = newurl;
 }
 

@@ -1,26 +1,3 @@
-<script>
-{literal}
-
-{/literal}
-
-function showColumnInfo(column) 
-{literal}{{/literal}
-	{foreach from=$dataTableColumns item=column name=headjs}
-		{if !$smarty.foreach.headjs.first}
-			hideColumnInfo({$column});
-		{/if}
-	{/foreach}
-	id = '#colunmInfo' + column.toString();
-	{literal}$(id).fadeIn();{/literal}
-{literal}}{/literal}
-
-function hideColumnInfo(column) 
-{literal}{{/literal}
-	id = '#colunmInfo' + column.toString();
-	{literal}$(id).fadeOut();{/literal}
-{literal}}{/literal}
-</script>
-
 <div id="{$properties.uniqueId}" class="dataTable">
 	<div class="reportDocumentation">
 		{if !empty($reportDocumentation)}<p>{$reportDocumentation}</p>{/if}
@@ -40,9 +17,9 @@ function hideColumnInfo(column)
 			<a name="{$properties.uniqueId}"></a>
 			<table cellspacing="0" class="dataTable"> 
 			<thead>
-			<tr>			
+			<tr>
 			{foreach from=$dataTableColumns item=column name=head}
-				<th onClick="{if !$smarty.foreach.head.first} showColumnInfo('{$column}'); {/if}" class="{if $smarty.foreach.head.first}first{elseif $smarty.foreach.head.last}last{/if}" id="{$properties.uniqueId}_{$column}">
+				<th class="sortable {if $smarty.foreach.head.first}first{elseif $smarty.foreach.head.last}last{/if}" id="{$column}">
 					{if !empty($columnDocumentation[$column])}
 						<div class="columnDocumentation">
 							<div class="columnDocumentationTitle">
@@ -54,39 +31,17 @@ function hideColumnInfo(column)
 					<div id="thDIV">{$columnTranslations[$column]|escape:'html'|replace:"&amp;nbsp;":"&nbsp;"}</div>
 				</th>
 			{/foreach}
-			<th>View SubClasses</th>
 			</tr>
 			</thead>
 			
 			<tbody>
 			{foreach from=$arrayDataTable item=row}
-			<tr
-				annotation="{$row.metadata.annotation}"
-				type="{$row.metadata.type}"
-				{if $row.idsubdatatable && $javascriptVariablesToSet.controllerActionCalledWhenRequestSubTable != null}
-				class="subDataTable"
-				id="{$row.idsubdatatable}"
-				{/if}
-				{if isset($row.issummaryrow) && $row.issummaryrow && $properties.highlight_summary_row}
-				class="highlight"
-				{/if}
-			>
-				{foreach from=$dataTableColumns item=column name=colitem}				
-				<td
-					{if $smarty.foreach.colitem.first}
-					onClick="showSingleClasses('{$row.metadata.annotation}', '{$row.metadata.sl_id}');"
-					{/if}
-				>
+			<tr annotation="{$row.metadata.annotation|utf8_decode|htmlentities}" type="{$row.metadata.type}" {if $row.idsubdatatable && $javascriptVariablesToSet.controllerActionCalledWhenRequestSubTable != null}class="subDataTable" id="{$row.idsubdatatable}"{/if}{if isset($row.issummaryrow) && $row.issummaryrow && $properties.highlight_summary_row} class="highlight"{/if}>
+				{foreach from=$dataTableColumns item=column}
+				<td>
 					{include file="CoreHome/templates/datatable_cell.tpl"}
 				</td>
 				{/foreach}
-				<td align="center">
-				{if isset($row.metadata.sl_hasSubclasses) && $row.metadata.sl_hasSubclasses}
-					<a
-						href="javascript:showSubClasses('{$row.metadata.annotation}', '{$row.metadata.sl_id}');"
-					><img width="24" height="24" border="0" src="plugins/SmartLoggent/images/browse.jpg"/></a>
-				{/if}
-				</td>
 			</tr>
 			{/foreach}
 			</tbody>

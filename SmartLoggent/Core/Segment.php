@@ -155,6 +155,8 @@ class Piwik_SmartLoggent_Core_Segment extends Piwik_Segment
 	 */
     public function getSelectQuery($select, $from, $where=false, $bind=array(), $orderBy=false, $groupBy=false)
     {
+    	//$profiler = Piwik::profilestart('Piwik_SmartLoggent_Core_Segment::'.__FUNCTION__); // 		Piwik::profileend($profiler);
+
     	$joinWithSubSelect = false;
     	
     	if (!is_array($from))
@@ -209,7 +211,9 @@ class Piwik_SmartLoggent_Core_Segment extends Piwik_Segment
     		'sql' => $sql,
     		'bind' => $bind
     	);
+    	//Piwik::log("SmartLoggent Core segment produced sql: $sql");
     	//var_dump($return);
+    	//Piwik::profileend($profiler);
     	return $return;
     }
 
@@ -221,6 +225,27 @@ class Piwik_SmartLoggent_Core_Segment extends Piwik_Segment
 	 */
     private function generateJoins($tables)
     {
+    	//$profiler = Piwik::profilestart('Piwik_SmartLoggent_Core_Segment::'.__FUNCTION__); // 		Piwik::profileend($profiler);
+    	// because smartloggent segments require log_link_visit_action, we make
+    	// sure that there is log_link_visit_action in the list of tables whenever
+    	// one of our tables is necessary.
+    	$has_sl_segment = false;
+    	$requested_sl_tables = array();
+    	$has_no_llva = true;
+    	foreach ($tables as $i => $table)
+    	{
+    		if (in_array($table, Piwik_SmartLoggent_SQL::$SEGMENT_TABLES))
+    		{
+    			$has_sl_segment = true;
+    			$requested_sl_tables[] = $table;
+    		}
+    		if ($table == "log_link_visit_action")
+    		{
+    			$has_no_llva = false;
+    		}
+    	}
+    	if ($has_sl_segment && $has_no_llva)
+    		$tables[] = "log_link_visit_action";
     	
     	$knownTables = array("log_visit", "log_link_visit_action", "log_conversion");
     	$visitsAvailable = $actionsAvailable = $conversionsAvailable = false;
@@ -247,20 +272,53 @@ class Piwik_SmartLoggent_Core_Segment extends Piwik_Segment
     		$tables[$visitIndex] = "log_link_visit_action";
     	}
     	
+    	if ($has_sl_segment)
+    	{
+    		$dependencies = Piwik_SmartLoggent_SQL::getDependenciesFor($requested_sl_tables);
+    		foreach ($dependencies as $dependency)
+    		{
+    			// we cycle through all the tables and if we don't find the necessary
+    			// joins, we add them.
+    			$dependency_is_satisfied = false;
+    			foreach ($tables as $i => $table)
+    			{
+    				if (is_array($table) && isset($table['id']) && $table['id'] === $dependency)
+    				{
+							$dependency_is_satisfied = true;
+    				}
+    			}
+    			if (!$dependency_is_satisfied)
+    			{
+    				$tables[] = Piwik_SmartLoggent_SQL::getSqlSegmentFor($dependency);
+    			}
+    		}
+    	}
+    	
     	foreach ($tables as $i => $table)
     	{
     		if (is_array($table))
     		{
     			// join condition provided
+    			$tablename = Piwik_Common::prefixTable($table['table']);
+    			if (isset($table['noprefix']))
+    				$tablename = $table['table'];
 				$alias = isset($table['tableAlias']) ? $table['tableAlias'] : $table['table'];
+				$joinType = isset($table['joinType']) ? $table['joinType'] : 'LEFT JOIN';
     			$sql .= "
-				LEFT JOIN ".Piwik_Common::prefixTable($table['table'])." AS ".$alias
-    			." ON ".$table['joinOn'];
+				$joinType $tablename AS $alias
+    			 ON ".$table['joinOn'];
+    			continue;
+    		}
+    		
+    		
+    		if (in_array($table, Piwik_SmartLoggent_SQL::$SEGMENT_TABLES))
+    		{
     			continue;
     		}
     		
     		if (!in_array($table, $knownTables))
     		{
+    			//Piwik::profileend($profiler);
     			throw new Exception("Table '$table' can't be used for segmentation");
     		}
     		
@@ -313,6 +371,7 @@ class Piwik_SmartLoggent_Core_Segment extends Piwik_Segment
 		        }
 		        else
 		        {
+    					//Piwik::profileend($profiler);
 		        	throw new Exception("Table '$table', can't be joined for segmentation");
 		        }
 		        
@@ -327,6 +386,7 @@ class Piwik_SmartLoggent_Core_Segment extends Piwik_Segment
     		$conversionsAvailable = ($conversionsAvailable || $table == "log_conversion");
     	}
     	
+    	//Piwik::profileend($profiler);
     	return array(
     		'sql' => $sql,
     		'joinWithSubSelect' => $joinWithSubSelect

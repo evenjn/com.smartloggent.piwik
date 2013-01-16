@@ -15,35 +15,27 @@ class Piwik_SmartLoggent_Core_ArchiveProcessing_Day extends Piwik_ArchiveProcess
 	 */
 	public function isThereSomeVisits()
 	{
-		// The data is fake, so we assume that there always are visits.
-		return true;
-			
+// 		$profiler = Piwik::profilestart('Piwik_SmartLoggent_Core_ArchiveProcessing_Day::'.__FUNCTION__); // 		Piwik::profileend($profiler);
 		if (!is_null($this->isThereSomeVisits))
 		{
-			
 			if ($this->isThereSomeVisits && is_null($this->nb_visits))
 			{
-				
 				debug_print_backtrace();
 				exit;
 			}
-			
+// 			Piwik::profileend($profiler);
 			return $this->isThereSomeVisits;
 		}
 		
-		
 		// prepare segmentation
 		$segment = $this->getSegment();
-		
 		
 		// We check if there is visits for the requested date / site / segment
 		//  If no specified Segment
 		//  Or if a segment is passed and we specifically process VisitsSummary
 		//   Then we check the logs. This is to ensure that this query is ran only once for this day/site/segment (rather than running it for every plugin)
 		$reportType = self::getPluginBeingProcessed($this->getRequestedReport());
-		
 		$specialcondition = $this->shouldProcessReportsAllPlugins($this->getSegment(), $this->period);
-		
 		if ($specialcondition
 			|| ($reportType == 'VisitsSummary'))
 		{
@@ -61,20 +53,16 @@ class Piwik_SmartLoggent_Core_ArchiveProcessing_Day extends Piwik_ArchiveProcess
 				AND log_visit.visit_last_action_time <= ?
 				AND log_visit.idsite = ?
 			";
-			
 			$bind = array($this->getStartDatetimeUTC(), $this->getEndDatetimeUTC(), $this->idsite);
-			
 			$query = $segment->getSelectQuery($select, $from, $where, $bind);
 			
 			$bind = $query['bind'];
 			$sql = $query['sql'];
-			
 			$data = $this->db->fetchRow($sql, $bind);
-			
 			// no visits found
 			if (!is_array($data) || $data['nb_visits'] == 0)
 			{
-			
+// 				Piwik::profileend($profiler);
 				return $this->isThereSomeVisits = false;
 			}
 			
@@ -83,14 +71,15 @@ class Piwik_SmartLoggent_Core_ArchiveProcessing_Day extends Piwik_ArchiveProcess
 			{
 				$this->insertNumericRecord($name, $value);
 			}
-			
 			$this->setNumberOfVisits($data['nb_visits']);
 			$this->setNumberOfVisitsConverted($data['nb_visits_converted']);
-			
+// 			Piwik::profileend($profiler);
 			return $this->isThereSomeVisits = true;
 		}
 		
-		return $this->redirectRequestToVisitsSummary();
+		$zzz = $this->redirectRequestToVisitsSummary();
+// 		Piwik::profileend($profiler);
+		return $zzz;
 	}
 	
 	/**
