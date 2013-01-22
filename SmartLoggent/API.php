@@ -2,64 +2,47 @@
 
 class Piwik_SmartLoggent_API
 {
-	const DIM_LANGUAGE = 'Language';
 	const DIM_CLASS = 'Class';
-	const DIM_SEARCHPHRASE= 'SearchPhrase';
 	const DIM_CLUSTER = 'Cluster';
-	const DIM_CLUSTERANALYSIS = 'ClusterAnalysis';
-	const DIM_SEARCHWORD = 'SearchWord';
+	const DIM_LANGUAGE = 'Language';
 	const DIM_NAMEDENTITY = 'NamedEntity';
 	const DIM_NAMEDENTITYTYPE = 'NamedEntityType';
+	const DIM_NATURALSEARCHPHRASE = 'NaturalSearchPhrase';
+	const DIM_SEARCHPHRASE= 'SearchPhrase';
+	const DIM_SEARCHWORD = 'SearchWord';	
 	
-	public static $DIMENSIONS = array
-	(
-		self::DIM_LANGUAGE
-	, self::DIM_CLASS
-	, self::DIM_SEARCHPHRASE
-	, self::DIM_CLUSTER
-	, self::DIM_CLUSTERANALYSIS
-	, self::DIM_SEARCHWORD
-	, self::DIM_NAMEDENTITY
-	, self::DIM_NAMEDENTITYTYPE
-	);
-	
-	const SEG_LANGUAGE = 'SLLanguage';
 	const SEG_CLASS = 'SLClass';
-	const SEG_SEARCHPHRASE= 'SLSearchPhrase';
+	const SEG_CLASSIFICATION = 'SLClassification';
 	const SEG_CLUSTER = 'SLCluster';
 	const SEG_CLUSTERANALYSIS = 'SLClusterAnalysis';
-	const SEG_SEARCHWORD = 'SLSearchWord';
+	const SEG_LANGUAGE = 'SLLanguage';
 	const SEG_NAMEDENTITY = 'SLNamedEntity';
 	const SEG_NAMEDENTITYTYPE = 'SLNamedEntityType';
-	const SEG_TOPCLASS = 'SLTopClass';
-	const SEG_BOTTOMCLASS = 'SLBottomClass';
-	const SEG_DIRECTSUBCLASS = 'SLDirectSubClass';
+	const SEG_NATURALSEARCHPHRASE= 'SLNaturalSearchPhrase';
+	const SEG_SEARCHPHRASE= 'SLSearchPhrase';
+	const SEG_SEARCHWORD = 'SLSearchWord';
 	const SEG_SUPERCLASS = 'SLSuperClass';
+	const SEG_TOPCLASS = 'SLTopClass';
 	
 	public static $SEGMENTS = array
 	(
-		self::SEG_LANGUAGE
-	, self::SEG_CLASS
-	, self::SEG_SEARCHPHRASE
-	, self::SEG_CLUSTER
-	, self::SEG_CLUSTERANALYSIS
-	, self::SEG_SEARCHWORD
-	, self::SEG_NAMEDENTITY
-	, self::SEG_NAMEDENTITYTYPE
-	, self::SEG_SUPERCLASS
-	, self::SEG_TOPCLASS
-	, self::SEG_BOTTOMCLASS
-	, self::SEG_DIRECTSUBCLASS
+		self::SEG_CLASS
+	,	self::SEG_CLASSIFICATION
+	,	self::SEG_CLUSTER
+	,	self::SEG_CLUSTERANALYSIS
+	,	self::SEG_LANGUAGE
+	,	self::SEG_NAMEDENTITY
+	,	self::SEG_NAMEDENTITYTYPE
+	,	self::SEG_NATURALSEARCHPHRASE
+	,	self::SEG_SEARCHWORD
+	,	self::SEG_SEARCHPHRASE
+	,	self::SEG_SUPERCLASS
+	,	self::SEG_TOPCLASS
 	);
 	
 	public static $SEGMENTSTOESCAPE = array
 	(
-			self::SEG_LANGUAGE
-			, self::SEG_CLUSTER
-			, self::SEG_CLUSTERANALYSIS
-			, self::SEG_SEARCHWORD
-			, self::SEG_NAMEDENTITY
-			, self::SEG_NAMEDENTITYTYPE
+			// no segments to escape yet
 	);
 	
 	/**
@@ -146,15 +129,178 @@ class Piwik_SmartLoggent_API
 		return self::$instance;
 	}
 	
+	public function getClass($idSite, $period, $date, $segment = false)
+	{
+		return $this->get($idSite, $period, $date, $segment, Piwik_SmartLoggent_API::DIM_CLASS);
+	}
+	
+	public function getCluster($idSite, $period, $date, $segment = false)
+	{
+		return $this->get($idSite, $period, $date, $segment, self::DIM_CLUSTER);
+	}
+	
 	public function getLanguage($idSite, $period, $date, $segment = false)
 	{
 		return $this->get($idSite, $period, $date, $segment, self::DIM_LANGUAGE);
 	}
 	
+	public function getNamedEntity($idSite, $period, $date, $segment = false)
+	{
+		return $this->get($idSite, $period, $date, $segment, self::DIM_NAMEDENTITY);
+	}
+	
+	public function getNamedEntityType($idSite, $period, $date, $segment = false)
+	{
+		return $this->get($idSite, $period, $date, $segment, self::DIM_NAMEDENTITYTYPE);
+	}
+	
+	public function getNaturalSearchPhrase($idSite, $period, $date, $segment = false)
+	{
+		return $this->get($idSite, $period, $date, $segment, self::DIM_NATURALSEARCHPHRASE);
+	}
 	
 	public function getSearchPhrase($idSite, $period, $date, $segment = false)
 	{
 		return $this->get($idSite, $period, $date, $segment, self::DIM_SEARCHPHRASE);
+	}
+	
+	public function getSearchWord($idSite, $period, $date, $segment = false)
+	{
+		return $this->get($idSite, $period, $date, $segment, self::DIM_SEARCHWORD);
+	}
+	
+	public function get($idSite, $period, $date, $segment = false, $dimension = self::DIM_SEARCHPHRASE)
+	{
+		$segment = Piwik_Common::getRequestVar('segment', false, 'string');}
+		$shards =  Piwik_SmartLoggent_SegmentEditor::split($segment, 'SL'.$dimension);
+		$result;
+		$firstDatatable = true;
+		foreach ($shards as $shard)
+		{
+// 			Piwik::smartlog("get$partition building from shard " . $shard);
+			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $shard);
+			$dataTable = $archive->getDataTable('SmartLoggent_'.$dimension);
+// 			Piwik::smartlog("get$partition got the datatable from archive, type " .get_class($dataTable) );
+			if($firstDatatable)
+			{
+				$firstDatatable = false;
+				$result = $dataTable;
+// 				if ($result instanceof Piwik_DataTable_Array)
+// 				{
+// 					$asarray = $result->getArray();
+// 					Piwik::smartlog("get$dimension first shard is array of DT.. Piwik_DataTable_Array");
+// 					foreach ($asarray as $id => $table)
+// 					{
+// 						foreach ($table->getRows() as $row)
+// 						{
+// 							Piwik::smartlog("get$dimension first shard datatable table #$id contains row " .$row->getColumn('label'));
+// 						}
+// 					}
+// 				}
+// 				else if ($result instanceof Piwik_DataTable)
+// 				{
+// 					foreach ($result->getRows() as $row)
+// 					{
+// 						Piwik::smartlog("get$dimension first shard datatable contains row " .$row->getColumn('label'));
+// 					}
+// 				}
+			}
+			else
+			{
+// 				Piwik::smartlog("get$partition it's not the first");
+				if ($result instanceof Piwik_DataTable_Array)
+				{
+					if (!($dataTable instanceof Piwik_DataTable_Array))
+					{
+						// This should never occur, but I am not completely sure.
+						Piwik::log("get$dimension error on Piwik_DataTable_Array");
+					}
+// 					Piwik::smartlog("get$partition building from array");
+					$asarray = $result->getArray();
+					foreach ($asarray as $id => $table)
+					{
+// 						Piwik::smartlog("get$partition building from array, one more table..");
+						$dataTableArray = $dataTable->getArray();
+						$goodtogo = array_key_exists($id, $dataTableArray);
+						if (! $goodtogo)
+						{
+							// This should never occur, but I am not completely sure.
+							Piwik::log("fatal error, could not find id $id");
+							Piwik::log("available ids:");
+							foreach ($dataTableArray as $id => $table)
+								Piwik::log($id);
+						}
+						$relatedTable = $dataTableArray[$id];
+						foreach ($relatedTable->getRows() as $row)
+						{
+// 							Piwik::smartlog("get$dimension building adding row " .$row->getColumn('label'));
+							$table->addRow($row);
+						}
+					}
+				}
+				else if ($result instanceof Piwik_DataTable)
+				{
+					if (!($dataTable instanceof Piwik_DataTable))
+					{
+						// This should never occur, but I am not completely sure.
+						Piwik::log("get$dimension error Piwik_DataTable");
+					}
+// 					Piwik::smartlog("get$dimension building from single");
+					$rows = $dataTable->getRows();
+					foreach ($rows as $row)
+					{
+// 						Piwik::smartlog("get$dimension building adding row " .$row->getColumn('label'));
+						$result->addRow($row);
+					}
+				}
+				else
+				{
+					// This should never occur, but I am not completely sure.
+					Piwik::log("error get$dimension building from unknown " . get_class($result));
+				}
+			}
+		}
+		return $result;
+	}
+	
+	public function getTop($idSite, $period, $date, $segment = false, $partition = self::DIM_SEARCHPHRASE, $metrics = self::INDEX_CLICK_PROBABILITY, $limit=10)
+	{
+		$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $segment);
+		$dataTable = $archive->getDataTable('SmartLoggent_'.$partition."By".$metrics);
+		$result = array();
+		$ids = array();
+		$labels = array();
+		$rows = $dataTable->getRows();
+		$count = 0;
+		foreach ($rows as $row)
+		{
+			if ($count >= $limit)
+				break;
+			$label = $row->getColumn('label');
+			$id = $row->getColumn('id');
+			$ids[] = $id;
+			$labels[] = $label;
+			$count = $count + 1;
+		}
+		$result['ids'] = $ids;
+		$result['labels'] = $labels;
+		return $result;
+	}
+	
+	public static function encodeString($value)
+	{
+		$encoded = base64_encode($value);
+		$replaced = str_replace('=', '_', $encoded);
+		// there are other characters to replace..
+		return $replaced;
+	}
+	
+	public static function decodeString($value)
+	{
+		// there are other characters to replace..
+		$replaced = str_replace('_', '=', $value);
+		$decoded = base64_decode($replaced);
+		return $decoded;
 	}
 	
 	public function getSearchPhraseDistributionData($idSite, $period, $date, $segment = false)
@@ -498,19 +644,6 @@ class Piwik_SmartLoggent_API
 		$dataTable->addRowsFromArrayWithIndexLabel($evolution);
 		return $dataTable;
 	
-	}
-	
-	public function getSearchWord($idSite, $period, $date, $segment = false)
-	{
-		return $this->get($idSite, $period, $date, $segment, self::DIM_SEARCHWORD);
-	}
-	
-	public function getClass($idSite, $period, $date, $segment = false)
-	{
-		// $segment = Piwik_SmartLoggent_SegmentEditor::set('SLBottomClass', '==', '1', $segment);
-		// $segment = Piwik_SmartLoggent_SegmentEditor::set('SLTopClass', '==', '1', $segment);
-		$result = $this->get($idSite, $period, $date, $segment, Piwik_SmartLoggent_API::DIM_CLASS);
-		return $result;
 	}
 	
 	public function getSubClassesData($idSite, $period, $date, $segment = false, $class)
@@ -956,125 +1089,5 @@ class Piwik_SmartLoggent_API
 		$dataTable->addRowsFromArray($subclass);
 		return $dataTable;
 	
-	}
-	
-	public function get($idSite, $period, $date, $segment = false, $dimension = self::DIM_SEARCHPHRASE)
-	{
-		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
-		// 		$tops_string = Piwik_Common::getRequestVar('smartloggent_filter_evolution', '');
-		// 		if ($tops_string === '')
-			// 		{
-			// 			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $segment);
-			// 			$dataTable = $archive->getDataTable('SmartLoggent_'.$dimension);
-			// 			return $dataTable;
-			// 		}
-		$shards =  Piwik_SmartLoggent_SegmentEditor::split($segment, 'SL'.$dimension);
-	
-		$result;
-		$firstDatatable = true;
-		foreach ($shards as $shard)
-		{
-// 			Piwik::log("get$partition building from shard " . $shard);
-			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $shard);
-			$dataTable = $archive->getDataTable('SmartLoggent_'.$dimension);
-// 			Piwik::log("get$dimension got the datatable from archive, type " .get_class($dataTable) );
-			if($firstDatatable)
-			{
-				// 				Piwik::log("get$dimension it's the first");
-				$firstDatatable = false;
-				$result = $dataTable;
-			}
-			else
-			{
-				// 				Piwik::log("get$dimension it's not the first");
-				if ($result instanceof Piwik_DataTable_Array)
-				{
-					if (!($dataTable instanceof Piwik_DataTable_Array))
-					{
-						Piwik::log("get$dimension error on Piwik_DataTable_Array");
-					}
-					// 					Piwik::log("get$dimension building from array");
-					$asarray = $result->getArray();
-					foreach ($asarray as $id => $table)
-					{
-						// 						Piwik::log("get$dimension building from array, one more table..");
-						$dataTableArray = $dataTable->getArray();
-						$goodtogo = array_key_exists($id, $dataTableArray);
-						if (! $goodtogo)
-						{
-							Piwik::log("fatal error, could not find id $id");
-							Piwik::log("available ids:");
-							foreach ($dataTableArray as $id => $table)
-								Piwik::log($id);
-							// error!
-						}
-						$relatedTable = $dataTableArray[$id];
-						foreach ($relatedTable->getRows() as $row)
-						{
-							// 							Piwik::log("get$dimension building adding row " .$row->getColumn('label'));
-							$table->addRow($row);
-						}
-					}
-				}
-				else if ($result instanceof Piwik_DataTable)
-				{
-					if (!($dataTable instanceof Piwik_DataTable))
-					{
-						Piwik::log("get$dimension error Piwik_DataTable");
-					}
-					//Piwik::log("get$dimension building from single");
-					$rows = $dataTable->getRows();
-					foreach ($rows as $row)
-					{
-						// 						Piwik::log("get$dimension building adding row " .$row->getColumn('label'));
-						$result->addRow($row);
-					}
-				}
-				else
-				{
-					Piwik::log("error get$dimension building from unknown " . get_class($result));
-				}
-			}
-		}
-		return $result;
-	}
-	
-	public function getTop($idSite, $period, $date, $segment = false, $partition = self::DIM_SEARCHPHRASE, $metrics = self::INDEX_CLICK_PROBABILITY, $limit=10)
-	{
-		$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $segment);
-		$dataTable = $archive->getDataTable('SmartLoggent_'.$partition."By".$metrics);
-		$result = array();
-		$ids = array();
-		$labels = array();
-		$rows = $dataTable->getRows();
-		$count = 0;
-		foreach ($rows as $row)
-		{
-			if ($count >= $limit)
-				break;
-			$label = $row->getColumn('label');
-			$id = $row->getColumn('id');
-			$ids[] = $id;
-			$labels[] = $label;
-			$count = $count + 1;
-		}
-	
-		$result['ids'] = $ids;
-		$result['labels'] = $labels;
-		return $result;
-	}
-	
-	public static function encodeString($value)
-	{
-		$encoded = base64_encode($value);
-		$replaced = str_replace('=', '_', $encoded);
-		return $replaced;
-	}
-	
-	public static function decodeString($value)
-	{
-		$replaced = str_replace('_', '=', $value);
-		$decoded = base64_decode($replaced);
-		return $decoded;
 	}
 }

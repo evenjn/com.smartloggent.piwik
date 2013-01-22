@@ -6,7 +6,7 @@ class Piwik_SmartLoggent_SegmentEditor
 	 * Produces an array of segments. Hard to explain. Example:
 	 *
 	 * input:
-	 * segment: 'language==it,de;color==blue,black,red;country==us'
+	 * segment: 'language==it_de;color==blue,black,red;country==us'
 	 * dimension: 'language'
 	 *
 	 * output:
@@ -85,6 +85,26 @@ class Piwik_SmartLoggent_SegmentEditor
 		}
 	
 		return $result;
+	}
+	
+	public static function featureIsSet($feature, $segment)
+	{
+		if ($segment === false || $segment === '')
+		{
+			return false;
+		}
+		$booleanclause = self::parseTree($segment);
+		$expandedbooleanclause = self::parseSubExpressions($booleanclause);
+		foreach($expandedbooleanclause as $leaf)
+		{
+			$original = $leaf[Piwik_SmartLoggent_Core_SegmentExpression::INDEX_OPERAND];
+			$originalFeature = $original[0];
+			if ($originalFeature == $feature)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public static function set($feature, $condition, $value, $segment = false)

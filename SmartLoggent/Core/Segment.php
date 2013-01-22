@@ -407,7 +407,7 @@ class Piwik_SmartLoggent_Core_Segment extends Piwik_Segment
     	
     	
     	$sql = "
-			SELECT
+			SELECT straight_join
 				$select
 			FROM
 				$from";

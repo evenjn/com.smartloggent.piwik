@@ -93,26 +93,44 @@ class Piwik_SmartLoggent extends Piwik_Plugin
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_Language')
-		,	'segment' => 'SLLanguage'
-		,	'sqlSegment' => 'todo_segment_SLLanguage'
-		,	'acceptedValues' => "to do"
+		,	'segment' => Piwik_SmartLoggent_API::SEG_LANGUAGE
+		,	'sqlSegment' => 'language.LG_IdLanguage'
+		,	'acceptedValues' => "the id of a specific language like eng, fra, ita"
 		);
 		$segments[] = array
 		(
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_SearchPhrase')
-		,	'segment' => 'SLSearchPhrase'
-		,	'sqlSegment' => 'normalizedsearchphrase.NP_IdNormalizedSearchPhrase'
-		,	'acceptedValues' => "Any string."
+		,	'segment' => Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+		,	'sqlSegment' => 'naturalsearchphrase.SP_NP_IdNormalizedSearchPhrase'
+		,	'acceptedValues' => "the id of a specific normalized search phrase"
+		);
+		$segments[] = array
+		(
+			'type' => 'dimension'
+		,	'category' => 'Visit'
+		,	'name' => Piwik_Translate('LOC_SL_Segment_SearchWord')
+		,	'segment' => Piwik_SmartLoggent_API::SEG_SEARCHWORD
+		,	'sqlSegment' => 'linkphraselemma.PL_LM_IdLemma'
+		,	'acceptedValues' => "the id of a specific search word"
+		);
+		$segments[] = array
+		(
+				'type' => 'dimension'
+				,	'category' => 'Visit'
+				,	'name' => Piwik_Translate('LOC_SL_Segment_NaturalSearchPhrase')
+				,	'segment' => Piwik_SmartLoggent_API::SEG_NATURALSEARCHPHRASE
+				,	'sqlSegment' => 'queryevent.QE_SP_IdNaturalSearchPhrase'
+				,	'acceptedValues' => "the id of a specific natural search phrase"
 		);
 		$segments[] = array
 		(
 		'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_Classification')
-		,	'segment' => 'SLClassification'
-		,	'sqlSegment' => 'todo_segment_SLClassification'
+		,	'segment' => Piwik_SmartLoggent_API::SEG_CLASSIFICATION
+		,	'sqlSegment' => 'linkphraseclass.PC_CL_TA_IdTaxonomy'
 		,	'acceptedValues' => "to do"
 		);
 		$segments[] = array
@@ -120,44 +138,26 @@ class Piwik_SmartLoggent extends Piwik_Plugin
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_Class')
-		,	'segment' => 'SLClass'
-		,	'sqlSegment' => 'ancestor.CA_Ancestor_IdClass'
-		,	'acceptedValues' => "to do"
+		,	'segment' => Piwik_SmartLoggent_API::SEG_CLASS
+		,	'sqlSegment' => 'linkphraseclass.PC_CL_IdClass'
+		,	'acceptedValues' => "the id of a specific class"
 		);
 		$segments[] = array
 		(
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_Class')
-		,	'segment' => 'SLBottomClass'
-		,	'sqlSegment' => 'ancestor.CA_Self'
-		,	'acceptedValues' => "true"
-		);
-		$segments[] = array
-		(
-			'type' => 'dimension'
-		,	'category' => 'Visit'
-		,	'name' => Piwik_Translate('LOC_SL_Segment_Class')
-		,	'segment' => 'SLDirectSubClass'
-		,	'sqlSegment' => 'supercategory.CA_Direct'
-		,	'acceptedValues' => "true"
-		);
-		$segments[] = array
-		(
-			'type' => 'dimension'
-		,	'category' => 'Visit'
-		,	'name' => Piwik_Translate('LOC_SL_Segment_Class')
-		,	'segment' => 'SLTopClass'
-		,	'sqlSegment' => 'supercategory.CA_AncestorIsTop'
-		,	'acceptedValues' => "true"
+		,	'segment' => Piwik_SmartLoggent_API::SEG_TOPCLASS
+		,	'sqlSegment' => 'category.CL_parentIsTop'
+		,	'acceptedValues' => "1"
 		);
 		$segments[] = array
 		(
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_SuperClass')
-		,	'segment' => 'SLSuperClass'
-		,	'sqlSegment' => 'supercategory.CA_Ancestor_IdClass'
+		,	'segment' => Piwik_SmartLoggent_API::SEG_SUPERCLASS
+		,	'sqlSegment' => 'category.CL_IdClass_Parent'
 		,	'acceptedValues' => "the id of a specific class"
 		);
 		$segments[] = array
@@ -165,36 +165,36 @@ class Piwik_SmartLoggent extends Piwik_Plugin
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_ClusterAnalysis')
-		,	'segment' => 'SLClusterAnalysis'
-		,	'sqlSegment' => 'todo_segment_SLClusterAnalysis'
-		,	'acceptedValues' => "to do"
+		,	'segment' => Piwik_SmartLoggent_API::SEG_CLUSTERANALYSIS
+		,	'sqlSegment' => 'cluster.CS_SE_IdClusteringSession'
+		,	'acceptedValues' => "the id of a specific cluster analysis/session"
 		);
 		$segments[] = array
 		(
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_Cluster')
-		,	'segment' => 'SLCluster'
-		,	'sqlSegment' => 'todo_segment_SLCluster'
-		,	'acceptedValues' => "to do"
+		,	'segment' => Piwik_SmartLoggent_API::SEG_CLUSTER
+		,	'sqlSegment' => 'linkphrasecluster.PL_CS_IdCluster'
+		,	'acceptedValues' => "the id of a specific cluster"
 		);
 		$segments[] = array
 		(
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_NamedEntityType')
-		,	'segment' => 'SLNamedEntityType'
-		,	'sqlSegment' => 'todo_segment_SLNamedEntityType'
-		,	'acceptedValues' => "to do"
+		,	'segment' => Piwik_SmartLoggent_API::SEG_NAMEDENTITYTYPE
+		,	'sqlSegment' => 'namedentity.NE_NT_IdEntityType'
+		,	'acceptedValues' => "the id of a specific named entity type"
 		);
 		$segments[] = array
 		(
 			'type' => 'dimension'
 		,	'category' => 'Visit'
 		,	'name' => Piwik_Translate('LOC_SL_Segment_NamedEntity')
-		,	'segment' => 'SLNamedEntity'
-		,	'sqlSegment' => 'todo_segment_SLNamedEntity'
-		,	'acceptedValues' => "to do"
+		,	'segment' => Piwik_SmartLoggent_API::SEG_NAMEDENTITY
+		,	'sqlSegment' => 'linkphrasenamedentity.PE_NE_IdEntity'
+		,	'acceptedValues' => "the id of a specific named entity"
 		);
 	}
 	
@@ -245,7 +245,7 @@ class Piwik_SmartLoggent extends Piwik_Plugin
 			return;
 		}
 // 		$profiler = Piwik::profilestart('Piwik_SmartLoggent::'.__FUNCTION__); // 		Piwik::profileend($profiler);
-		Piwik_SmartLoggent_SQL::archiveDay($archiveProcessing);
+		Piwik_SmartLoggent_SQL::archiveAll($archiveProcessing);
 // 		Piwik::profileend($profiler);
 		
 	}
@@ -260,7 +260,7 @@ class Piwik_SmartLoggent extends Piwik_Plugin
 			return;
 		}
 // 		$profiler = Piwik::profilestart('Piwik_SmartLoggent::'.__FUNCTION__); // 		Piwik::profileend($profiler);
-		Piwik_SmartLoggent_SQL::archivePeriod($archiveProcessing);
+		Piwik_SmartLoggent_SQL::archiveAll($archiveProcessing);
 // 		Piwik::profileend($profiler);
 	}
 	

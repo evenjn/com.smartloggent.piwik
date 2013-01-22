@@ -18,12 +18,15 @@ $translations = array(
 	// segments
 	,	'LOC_SL_Segment_Language' => 'Language'
 	,	'LOC_SL_Segment_SearchPhrase' => 'Search Phrase'
+	,	'LOC_SL_Segment_SearchWord' => 'Search Word'
 	,	'LOC_SL_Segment_Classification' => 'Classification'
 	,	'LOC_SL_Segment_Class' => 'Class'
+	,	'LOC_SL_Segment_SuperClass' => 'Superclass'
 	,	'LOC_SL_Segment_ClusterAnalysis' => 'Cluster Analysis'
 	,	'LOC_SL_Segment_Cluster' => 'Cluster'
 	,	'LOC_SL_Segment_NamedEntityType' => 'Named Entity Type'
 	,	'LOC_SL_Segment_NamedEntity' => 'Named Entity'
+	, 'LOC_SL_Segment_NaturalSearchPhrase' => 'Natural Search Phrase'
 
 	// reports metadata
 	,	'LOC_SL_ReportMetadata_SearchPhrase_Category' => 'VALUE_LOC_SL_ReportMetadata_SearchPhrase_Category'
@@ -38,15 +41,20 @@ $translations = array(
 	// columns
 	,	'LOC_SL_Column_Label_Class' => 'Class'
 	,	'LOC_SL_Column_Label_SearchPhrase' => 'Search Phrase'
+	,	'LOC_SL_Column_Label_Language' => 'Language'
+	,	'LOC_SL_Column_Label_SearchWord' => 'Search Word'
+	,	'LOC_SL_Column_Label_NaturalSearchPhrase' => 'Natural Search Phrase'
+	,	'LOC_SL_Column_Label_NamedEntityType' => 'Named Entity Type'
+	,	'LOC_SL_Column_Label_NamedEntity' => 'Named Entity'
+	,	'LOC_SL_Column_Label_Cluster' => 'Cluster'
 	,	'LOC_SL_Column_AVG_CLICKS' => 'Avg. clicks'
 	,	'LOC_SL_Column_AVG_RESULTS' => 'Avg. results'
-	,	'LOC_SL_Column_CLICK_PROBABILITY' => 'Avg. results'
 	,	'LOC_SL_Column_CLICK_PROBABILITY' => 'Click prob.'
-	,	'LOC_SL_Column_FR_CLICKS' => 'Click share'
-	,	'LOC_SL_Column_FR_QUERIES' => 'Query share'
+	,	'LOC_SL_Column_FR_CLICKS' => 'Clicks %'
+	,	'LOC_SL_Column_FR_QUERIES' => 'Queries %'
 	,	'LOC_SL_Column_NB_CLICKS' => 'Clicks'
 	,	'LOC_SL_Column_NB_QUERIES' => 'Queries'
-	,	'LOC_SL_Column_WEIGHTED_CLICK_PROBABILITY' => 'Weighted click prob.'
+	,	'LOC_SL_Column_WEIGHTED_CLICK_PROBABILITY' => 'QC-index'
 
 	// page Search Phrase Overview
 	,	'LOC_SL_SearchPhraseOverviewPageTitle' => 'Overview of Search Phrases'
