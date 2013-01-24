@@ -149,16 +149,16 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		foreach ($this->array_metrics as $metric) {
 			//$result_classMetrics = $this->getClassMetricGraph($metric);
 
-			$result_classMetrics = $this->getMetricGraph('SmartLoggent.getClass', $metric);
+			$result_classMetrics = $this->getTopChart(Piwik_SmartLoggent_API::DIM_CLASS, $metric, true, true);
 				
 			//$result_detail_evolution_chart = $this->getClassDetailEvolution("getClassDetailEvolutionData", array('metric' => $metric));
 				
-			$result_detail_evolution_chart = $this->getEvolutionGraph('get',
-					$metric,
-					1,-1,
-					Piwik_SmartLoggent_API::DIM_CLASS);
+// 			$result_detail_evolution_chart = $this->getEvolutionGraph('get',
+// 					$metric,
+// 					1,-1,
+// 					Piwik_SmartLoggent_API::DIM_CLASS);
 			
-			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
+			$detailcharts[$metric]['chartevolution'] = "<p>disabled</p>";//$result_detail_evolution_chart;
 			$detailcharts[$metric]['metric'] = $metric;
 			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
 
@@ -1697,16 +1697,6 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 			$view->setSelectableColumns(array($metric, Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS));
 		return $view;
 	}
-
-	public static function getTop($dimension, $metric, $limit, $segment = false)
-	{
-		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
-		$period = Piwik_Common::getRequestVar('period', '', 'string');
-		$date = Piwik_Common::getRequestVar('date', '', 'string');
-		$segment = Piwik_Common::getRequestVar('segment', $segment, 'string');
-		$result = Piwik_SmartLoggent_API::getInstance()->getTop($idSite, $period, $date, $segment, $dimension, $metric, $limit);
-		return $result;
-	}
 	
 	private function getUrlForAction($action) {
 		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
@@ -1831,5 +1821,552 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$result = $this->renderView($view, true);
 		
 		return $result;		
+	}
+	
+	// ----------------------
+	// 	GET TOP
+
+	public function getTopChart($dimension, $metric, $fetch = false, $recompute_top = false)
+	{
+		if ($dimension == Piwik_SmartLoggent_API::DIM_SEARCHPHRASE)
+		{
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS)
+				return $this->getSearchPhraseByVisitors($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_VISITS)
+				return $this->getSearchPhraseByVisits($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_QUERIES)
+				return $this->getSearchPhraseByQueries($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_FR_QUERIES)
+				return $this->getSearchPhraseByQueriesPercent($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_CLICKS)
+				return $this->getSearchPhraseByTotalClicks($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_FR_CLICKS)
+				return $this->getSearchPhraseByTotalClicksPercent($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_CLICKS)
+				return $this->getSearchPhraseByAverageClicks($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_RESULTS)
+				return $this->getSearchPhraseByAverageResults($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_RESULTS)
+				return $this->getSearchPhraseByAverageResults($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY)
+				return $this->getSearchPhraseByClickProbability($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY)
+				return $this->getSearchPhraseByQCIndex($fetch, $recompute_top);
+		}
+		else if ($dimension == Piwik_SmartLoggent_API::DIM_LANGUAGE)
+		{
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS)
+				return $this->getLanguageByVisitors($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_VISITS)
+				return $this->getLanguageByVisits($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_QUERIES)
+				return $this->getLanguageByQueries($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_FR_QUERIES)
+				return $this->getLanguageByQueriesPercent($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_CLICKS)
+				return $this->getLanguageByTotalClicks($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_FR_CLICKS)
+				return $this->getLanguageByTotalClicksPercent($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_CLICKS)
+				return $this->getLanguageByAverageClicks($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_RESULTS)
+				return $this->getLanguageByAverageResults($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_RESULTS)
+				return $this->getLanguageByAverageResults($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY)
+				return $this->getLanguageByClickProbability($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY)
+				return $this->getLanguageByQCIndex($fetch, $recompute_top);
+		}
+		else if ($dimension == Piwik_SmartLoggent_API::DIM_CLASS)
+		{
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS)
+				return $this->getClassByVisitors($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_VISITS)
+				return $this->getClassByVisits($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_QUERIES)
+				return $this->getClassByQueries($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_FR_QUERIES)
+				return $this->getClassByQueriesPercent($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_NB_CLICKS)
+				return $this->getClassByTotalClicks($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_FR_CLICKS)
+				return $this->getClassByTotalClicksPercent($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_CLICKS)
+				return $this->getClassByAverageClicks($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_RESULTS)
+				return $this->getClassByAverageResults($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_AVG_RESULTS)
+				return $this->getClassByAverageResults($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY)
+				return $this->getClassByClickProbability($fetch, $recompute_top);
+			if ($metric == Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY)
+				return $this->getClassByQCIndex($fetch, $recompute_top);
+		}
+	}
+	
+	public static function getTop($dimension, $metric, $limit)
+	{
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
+		$result = Piwik_SmartLoggent_API::getInstance()->getTop($idSite, $period, $date, $segment, $dimension, $metric, $limit);
+		return $result;
+	}
+	
+	public function getDimensionByMetric($dimension, $segment, $metric_to_rank, $metric_to_display, $function, $fetch = false, $recompute_top = false)
+	{
+		$to_reset = false;
+		if ($recompute_top)
+		{
+			$to_reset = true;
+			$tops = self::getTop($dimension, $metric_to_rank, 4);
+			$topsids = $tops['ids'];
+			if (empty($tops))
+				$tops[] = '0';
+			$originalSegment = Piwik_Common::getRequestVar('segment', false, 'string');
+			$_GET['segment'] = Piwik_SmartLoggent_SegmentEditor::set($segment, '==', implode('_', $topsids), $originalSegment);
+		}
+		$view = Piwik_SmartLoggent_Core_ViewDataTable::factory('graphVerticalBar');
+		$view->init($this->pluginName, $function, "SmartLoggent.get$dimension");
+		$view->setColumnsToDisplay(array('label',	$metric_to_display));
+		$view->setColumnTranslation('label', Piwik_Translate("LOC_SL_Column_Label_$dimension"));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_AVG_CLICKS, Piwik_Translate('LOC_SL_Column_AVG_CLICKS'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_AVG_RESULTS, Piwik_Translate('LOC_SL_Column_AVG_RESULTS'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY, Piwik_Translate('LOC_SL_Column_CLICK_PROBABILITY'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_FR_CLICKS, Piwik_Translate('LOC_SL_Column_FR_CLICKS'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_FR_QUERIES, Piwik_Translate('LOC_SL_Column_FR_QUERIES'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_CLICKS, Piwik_Translate('LOC_SL_Column_NB_CLICKS'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_QUERIES, Piwik_Translate('LOC_SL_Column_NB_QUERIES'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY, Piwik_Translate('LOC_SL_Column_WEIGHTED_CLICK_PROBABILITY'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS, Piwik_Translate('General_ColumnNbUniqVisitors'));
+		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS, Piwik_Translate('General_ColumnNbVisits'));
+		$view->setSortedColumn($metric_to_display, 'desc');
+		$view->disableSearchBox();
+		$result = $this->renderView($view, $fetch);
+		if ($to_reset)
+			$_GET['segment'] = $originalSegment;
+		return $result;
+	}
+	
+	public function getSearchPhraseByVisitors($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
+				,	Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByVisits($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_NB_VISITS
+				,	Piwik_SmartLoggent_API::INDEX_NB_VISITS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByQueries($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByQueriesPercent($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	Piwik_SmartLoggent_API::INDEX_FR_QUERIES
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByTotalClicks($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByTotalClicksPercent($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_FR_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByAverageClicks($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_AVG_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_AVG_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByAverageResults($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS
+				,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByClickProbability($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY
+				,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getSearchPhraseByQCIndex($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::SEG_SEARCHPHRASE
+				,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY
+				,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByVisitors($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
+				,	Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByVisits($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_NB_VISITS
+				,	Piwik_SmartLoggent_API::INDEX_NB_VISITS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByQueries($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByQueriesPercent($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	Piwik_SmartLoggent_API::INDEX_FR_QUERIES
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByTotalClicks($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByTotalClicksPercent($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_FR_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByAverageClicks($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_AVG_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_AVG_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByAverageResults($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS
+				,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByClickProbability($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY
+				,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getLanguageByQCIndex($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_LANGUAGE
+				,	Piwik_SmartLoggent_API::SEG_LANGUAGE
+				,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY
+				,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByVisitors($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
+				,	Piwik_SmartLoggent_API::INDEX_NB_UNIQ_VISITORS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByVisits($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_NB_VISITS
+				,	Piwik_SmartLoggent_API::INDEX_NB_VISITS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByQueries($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByQueriesPercent($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_NB_QUERIES
+				,	Piwik_SmartLoggent_API::INDEX_FR_QUERIES
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByTotalClicks($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByTotalClicksPercent($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_NB_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_FR_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByAverageClicks($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_AVG_CLICKS
+				,	Piwik_SmartLoggent_API::INDEX_AVG_CLICKS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByAverageResults($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS
+				,	Piwik_SmartLoggent_API::INDEX_AVG_RESULTS
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByClickProbability($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY
+				,	Piwik_SmartLoggent_API::INDEX_CLICK_PROBABILITY
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
+	}
+	
+	public function getClassByQCIndex($fetch = false, $recompute_top = false)
+	{
+		return $this->getDimensionByMetric
+		(
+				Piwik_SmartLoggent_API::DIM_CLASS
+				,	Piwik_SmartLoggent_API::SEG_CLASS
+				,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY
+				,	Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY
+				,	__FUNCTION__
+				,	$fetch
+				, $recompute_top
+		);
 	}
 }

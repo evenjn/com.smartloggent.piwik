@@ -303,17 +303,11 @@ class Piwik_SmartLoggent_API
 		return $decoded;
 	}
 	
-	public function getClass($idSite, $period, $date, $segment = false)
-	{
-		return Piwik_SmartLoggent_API::get($idSite, $period, $date, $segment, self::DIM_CLASS);
-	}
-	
 	public function getSearchPhraseFiltered($idSite, $period, $date, $segment = false, $arFlt)
 	{
 		if ($arFlt)
 			while (list($k,$v) = each($arFlt)) {
-				$newSegment = Piwik_SmartLoggent_SegmentEditor::set($k, '==', $v, $segment);
-				$segment = $segment . $newSegment . ";";
+				$segment = Piwik_SmartLoggent_SegmentEditor::set($k, '==', $v, $segment);
 		}
 		
 		return Piwik_SmartLoggent_API::get($idSite, $period, $date, $segment, self::DIM_SEARCHPHRASE);
@@ -323,148 +317,13 @@ class Piwik_SmartLoggent_API
 	{
 		if ($arFlt)
 			while (list($k,$v) = each($arFlt)) {
-			$newSegment = Piwik_SmartLoggent_SegmentEditor::set($k, '==', $v, $segment);
-			$segment = $segment . $newSegment . ";";
+			$segment = Piwik_SmartLoggent_SegmentEditor::set($k, '==', $v, $segment);
 		}
 	
 		return Piwik_SmartLoggent_API::get($idSite, $period, $date, $segment, $dimension);
 	}
 	
-	public function get($idSite, $period, $date, $segment = false, $dimension = self::DIM_SEARCHPHRASE)
-	{
-		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
-		$shards =  Piwik_SmartLoggent_SegmentEditor::split($segment, 'SL'.$dimension);
-		$result;
-		$firstDatatable = true;
-		foreach ($shards as $shard)
-		{
-			// 			Piwik::smartlog("get$partition building from shard " . $shard);
-			$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $shard);
-			$dataTable = $archive->getDataTable('SmartLoggent_'.$dimension);
-			// 			Piwik::smartlog("get$partition got the datatable from archive, type " .get_class($dataTable) );
-			if($firstDatatable)
-			{
-				$firstDatatable = false;
-				$result = $dataTable;
-				// 				if ($result instanceof Piwik_DataTable_Array)
-					// 				{
-					// 					$asarray = $result->getArray();
-					// 					Piwik::smartlog("get$dimension first shard is array of DT.. Piwik_DataTable_Array");
-					// 					foreach ($asarray as $id => $table)
-						// 					{
-						// 						foreach ($table->getRows() as $row)
-							// 						{
-							// 							Piwik::smartlog("get$dimension first shard datatable table #$id contains row " .$row->getColumn('label'));
-							// 						}
-							// 					}
-							// 				}
-							// 				else if ($result instanceof Piwik_DataTable)
-								// 				{
-							// 					foreach ($result->getRows() as $row)
-								// 					{
-								// 						Piwik::smartlog("get$dimension first shard datatable contains row " .$row->getColumn('label'));
-								// 					}
-								// 				}
-			}
-			else
-			{
-				// 				Piwik::smartlog("get$partition it's not the first");
-				if ($result instanceof Piwik_DataTable_Array)
-				{
-					if (!($dataTable instanceof Piwik_DataTable_Array))
-					{
-						// This should never occur, but I am not completely sure.
-						Piwik::log("get$dimension error on Piwik_DataTable_Array");
-					}
-					// 					Piwik::smartlog("get$partition building from array");
-					$asarray = $result->getArray();
-					foreach ($asarray as $id => $table)
-					{
-						// 						Piwik::smartlog("get$partition building from array, one more table..");
-						$dataTableArray = $dataTable->getArray();
-						$goodtogo = array_key_exists($id, $dataTableArray);
-						if (! $goodtogo)
-						{
-							// This should never occur, but I am not completely sure.
-							Piwik::log("fatal error, could not find id $id");
-							Piwik::log("available ids:");
-							foreach ($dataTableArray as $id => $table)
-								Piwik::log($id);
-						}
-						$relatedTable = $dataTableArray[$id];
-						foreach ($relatedTable->getRows() as $row)
-						{
-							// 							Piwik::smartlog("get$dimension building adding row " .$row->getColumn('label'));
-							$table->addRow($row);
-						}
-					}
-				}
-				else if ($result instanceof Piwik_DataTable)
-				{
-					if (!($dataTable instanceof Piwik_DataTable))
-					{
-						// This should never occur, but I am not completely sure.
-						Piwik::log("get$dimension error Piwik_DataTable");
-					}
-					// 					Piwik::smartlog("get$dimension building from single");
-					$rows = $dataTable->getRows();
-					foreach ($rows as $row)
-					{
-						// 						Piwik::smartlog("get$dimension building adding row " .$row->getColumn('label'));
-						$result->addRow($row);
-					}
-				}
-				else
-				{
-					// This should never occur, but I am not completely sure.
-					Piwik::log("error get$dimension building from unknown " . get_class($result));
-				}
-			}
-	}
-	return $result;
-	}
-	
-	public function getTop($idSite, $period, $date, $segment = false, $partition = self::DIM_SEARCHPHRASE, $metrics = self::INDEX_CLICK_PROBABILITY, $limit=10)
-	{
-		$archive = Piwik_SmartLoggent_Core_Archive::build($idSite, $period, $date, $segment);
-		$dataTable = $archive->getDataTable('SmartLoggent_'.$partition."By".$metrics);
-		$result = array();
-		$ids = array();
-		$labels = array();
-		$rows = $dataTable->getRows();
-		$count = 0;
-		foreach ($rows as $row)
-		{
-			if ($count >= $limit)
-				break;
-			$label = $row->getColumn('label');
-			$id = $row->getColumn('id');
-			$ids[] = $id;
-			$labels[] = $label;
-			$count = $count + 1;
-		}
-		$result['ids'] = $ids;
-		$result['labels'] = $labels;
-		return $result;
-	}
-	
-	public static function encodeString($value)
-	{
-		$encoded = base64_encode($value);
-		$replaced = str_replace('=', '_', $encoded);
-		// there are other characters to replace..
-		return $replaced;
-	}
-	
-	public static function decodeString($value)
-	{
-		// there are other characters to replace..
-		$replaced = str_replace('_', '=', $value);
-		$decoded = base64_decode($replaced);
-		return $decoded;
-	}
-	
-public function getSearchPhraseDistributionData($idSite, $period, $date, $segment = false)
+	public function getSearchPhraseDistributionData($idSite, $period, $date, $segment = false)
 	{
 		// TODO @CELI: return a dataTable for pie graph ([8])
 		
