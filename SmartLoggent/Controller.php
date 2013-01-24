@@ -61,15 +61,9 @@ public function searchPhrase()
 		$detailcharts = array();
 
 		foreach ($this->array_metrics as $metric) {
-			$result_searchPhraseMetrics = $this->getMetricGraph('get',
-					$metric,
-					3,-1,
-					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
+			$result_searchPhraseMetrics = $this->getTopChart(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, $metric, true, true);
 			
-			$result_detail_metric_chart = $this->getMetricGraph('get',
-					$metric,
-					3,-1,
-					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
+			$result_detail_metric_chart = $this->getTopChart(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, $metric, true, true);
 			
 			$result_detail_evolution_chart = $this->getEvolutionGraph('get', $metric, 5, -1, Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
 				
@@ -153,16 +147,6 @@ public function classes()
 		$detailcharts = array();
 		
 		foreach ($this->array_metrics as $metric) {
-			//$result_classMetrics = $this->getClassMetricGraph($metric);
-
-			//$result_classMetrics = $this->getMetricGraph('SmartLoggent.getClass', $metric);
-				
-			//$result_detail_evolution_chart = $this->getClassDetailEvolution("getClassDetailEvolutionData", array('metric' => $metric));
-
-			$result_classMetrics = ""; /*$this->getMetricGraph('get',
-					$metric,
-					3,-1,
-					Piwik_SmartLoggent_API::DIM_CLASS);*/
 			
 			$result_detail_evolution_chart = $this->getEvolutionGraph('get',
 					$metric,
@@ -173,7 +157,7 @@ public function classes()
 			$detailcharts[$metric]['metric'] = $metric;
 			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
 
-			$classMetrics[] = $result_classMetrics;
+			$classMetrics[] =  $this->getTopChart(Piwik_SmartLoggent_API::DIM_CLASS, $metric, true, true);
 		}
 
 		$view->classMetrics = $classMetrics;
@@ -1780,40 +1764,6 @@ public function classes()
 		return $result;		
 	}
 	
-	public function getMetricGraph($function=-1, $metric=-1, $limit=3, $arFilters = -1, $dimension = -1)
-	{
-		
-		static $mt; if ($metric != -1) $mt = $metric;
-		static $fn; if ($function != -1) $fn = $function;
-		static $lm; if ($limit != -1) $lm = $limit;
-		static $arFlt; if ($arFilters != -1) $arFlt = $arFilters;
-		static $dim; if ($dimension != -1) $dim = $dimension;
-		
-		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
-		$period = Piwik_Common::getRequestVar('period', '', 'string');
-		$date = Piwik_Common::getRequestVar('date', '', 'string');
-		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
-		
-		if ($arFlt)
-			$dataTable = Piwik_SmartLoggent_API::$fn($idSite, $period, $date, $segment, $arFlt);
-		else
-			$dataTable = Piwik_SmartLoggent_API::$fn($idSite, $period, $date, $segment, $dim);
-		
-		$view = Piwik_ViewDataTable::factory('graphVerticalBar');
-		$view->init( $this->pluginName,  __FUNCTION__,  'SmartLoggent.getSearchPhrase' );
-		$view->disableShowAllColumns();
-		$view->setDatatable($dataTable);
-		$view->setColumnsToDisplay(array('label', $mt));
-		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
-		$view->setSortedColumn($mt, 'desc');
-		$view->disableFooter();
-		$view->setLimit($limit);
-		$view->setUniqueIdViewDataTable ($this->getUUID());
-		$view->setTemplate("SmartLoggent/templates/GraphMetric.tpl");
-		$result = $this->renderView($view, true);
-		return $result;
-	}
-	
 	public function getEvolutionGraph($function=-1, $metric=-1, $limit=3, $arFilters = -1, $dimension = -1)
 	{		
 		static $mt; if ($metric != -1) $mt = $metric;
@@ -1967,6 +1917,13 @@ public function classes()
 		$view->setColumnTranslation(Piwik_SmartLoggent_API::INDEX_NB_VISITS, Piwik_Translate('General_ColumnNbVisits'));
 		$view->setSortedColumn($metric_to_display, 'desc');
 		$view->disableSearchBox();
+		$view->disableExcludeLowPopulation();
+		$view->disableOffsetInformationAndPaginationControls();
+		$view->disableSort();
+		$view->disableShowAllColumns();
+// 		$view->disableFooter();
+// 		$view->setUniqueIdViewDataTable ($this->getUUID()); // what would be this for?
+// 		$view->setTemplate("SmartLoggent/templates/GraphMetric.tpl"); // this breaks multiple chart types
 		$result = $this->renderView($view, $fetch);
 		if ($to_reset)
 			$_GET['segment'] = $originalSegment;
