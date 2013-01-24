@@ -46,7 +46,7 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$this->renderView($view1);
 	}
 
-	public function searchPhrase()
+public function searchPhrase()
 	{
 		$view = new Piwik_View('SmartLoggent/templates/searchPhraseOverview.tpl');
 
@@ -61,8 +61,15 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$detailcharts = array();
 
 		foreach ($this->array_metrics as $metric) {
-			$result_searchPhraseMetrics = $this->getMetricGraph('SmartLoggent.getSearchPhrase', $metric);
-			$result_detail_metric_chart = $this->getMetricGraph('SmartLoggent.getSearchPhrase', $metric);
+			$result_searchPhraseMetrics = $this->getMetricGraph('get',
+					$metric,
+					3,-1,
+					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
+			
+			$result_detail_metric_chart = $this->getMetricGraph('get',
+					$metric,
+					3,-1,
+					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
 			
 			$result_detail_evolution_chart = $this->getEvolutionGraph('get', $metric, 5, -1, Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
 				
@@ -124,7 +131,7 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		echo $view->render();
 	}
 
-	public function classes()
+public function classes()
 	{
 		$view = new Piwik_View('SmartLoggent/templates/classOverview.tpl');
 		//$view->class = $this->getClass(true);
@@ -132,7 +139,6 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 				5, -1, "classDatatable.tpl",
 				Piwik_SmartLoggent_API::DIM_CLASS);
-		
 
 		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
 				'action' => 'index',
@@ -149,16 +155,21 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		foreach ($this->array_metrics as $metric) {
 			//$result_classMetrics = $this->getClassMetricGraph($metric);
 
-			$result_classMetrics = $this->getTopChart(Piwik_SmartLoggent_API::DIM_CLASS, $metric, true, true);
+			//$result_classMetrics = $this->getMetricGraph('SmartLoggent.getClass', $metric);
 				
 			//$result_detail_evolution_chart = $this->getClassDetailEvolution("getClassDetailEvolutionData", array('metric' => $metric));
-				
-// 			$result_detail_evolution_chart = $this->getEvolutionGraph('get',
-// 					$metric,
-// 					1,-1,
-// 					Piwik_SmartLoggent_API::DIM_CLASS);
+
+			$result_classMetrics = ""; /*$this->getMetricGraph('get',
+					$metric,
+					3,-1,
+					Piwik_SmartLoggent_API::DIM_CLASS);*/
 			
-			$detailcharts[$metric]['chartevolution'] = "<p>disabled</p>";//$result_detail_evolution_chart;
+			$result_detail_evolution_chart = $this->getEvolutionGraph('get',
+					$metric,
+					1,-1,
+					Piwik_SmartLoggent_API::DIM_CLASS);
+			
+			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
 			$detailcharts[$metric]['metric'] = $metric;
 			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
 
@@ -1769,17 +1780,29 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		return $result;		
 	}
 	
-	public function getMetricGraph($function=-1, $metric=-1, $limit=3)
+	public function getMetricGraph($function=-1, $metric=-1, $limit=3, $arFilters = -1, $dimension = -1)
 	{
-		static $mt;
-		if ($metric != -1) $mt = $metric;
 		
-		static $fn;
-		if ($function != -1) $fn = $function;
-	
+		static $mt; if ($metric != -1) $mt = $metric;
+		static $fn; if ($function != -1) $fn = $function;
+		static $lm; if ($limit != -1) $lm = $limit;
+		static $arFlt; if ($arFilters != -1) $arFlt = $arFilters;
+		static $dim; if ($dimension != -1) $dim = $dimension;
+		
+		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
+		$period = Piwik_Common::getRequestVar('period', '', 'string');
+		$date = Piwik_Common::getRequestVar('date', '', 'string');
+		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
+		
+		if ($arFlt)
+			$dataTable = Piwik_SmartLoggent_API::$fn($idSite, $period, $date, $segment, $arFlt);
+		else
+			$dataTable = Piwik_SmartLoggent_API::$fn($idSite, $period, $date, $segment, $dim);
+		
 		$view = Piwik_ViewDataTable::factory('graphVerticalBar');
-		$view->init( $this->pluginName,  __FUNCTION__,  $fn );
+		$view->init( $this->pluginName,  __FUNCTION__,  'SmartLoggent.getSearchPhrase' );
 		$view->disableShowAllColumns();
+		$view->setDatatable($dataTable);
 		$view->setColumnsToDisplay(array('label', $mt));
 		$view->setColumnTranslation($mt,  Piwik_Translate($this->array_metrics_titles[$mt]));
 		$view->setSortedColumn($mt, 'desc');
@@ -1810,7 +1833,7 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 			$dataTable = Piwik_SmartLoggent_API::$fn($idSite, $period, $date, $segment, $dim);
 		
 		$view = Piwik_ViewDataTable::factory('graphEvolution');
-		$view->init( $this->pluginName,  __FUNCTION__, $fn);
+		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
 		$view->disableShowAllColumns();
 		$view->setDatatable($dataTable);
 		$view->setColumnsToDisplay(array($mt));
@@ -1820,7 +1843,7 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 		$view->setUniqueIdViewDataTable ($this->getUUID());
 		$result = $this->renderView($view, true);
 		
-		return $result;		
+		return $result;
 	}
 	
 	// ----------------------
