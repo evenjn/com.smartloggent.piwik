@@ -50,6 +50,9 @@ h2.sl_hasdescription {
 	top: 100px; 
 	left: 250px;
 	width: 935px;
+	height: 900px;
+	z-index: 100;
+	background: white;
 }
 
 .paneldiv {
@@ -58,20 +61,29 @@ h2.sl_hasdescription {
 	top: 100px; 
 	left: 250px;
 	width: 935px;
+	z-index: 0;
 }
 
 .columndiv {
-	display: none;
+	display: block;
 	background: #FFFFFF;
 	position: absolute;
 	top: 220px;
-	left: 120px;
+	left: 250px;
 	z-index: 99;
-	width: 900px;
+	width: 800px;
 	height: 600px;
 	-moz-border-radius: 15px;
 	border-radius: 15px;
 	border: 3px solid #aaaaaa;
+}
+
+.metricgraph {
+	left: 400px;
+	width: 935px;
+	-moz-border-radius: 8px;
+	border-radius: 8px;
+	border: 2px solid #aaaaaa;
 }
 
 .sl_description p {

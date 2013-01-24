@@ -3,7 +3,6 @@
 
 {literal}
 <script>
-
 function showSingleSearchPhrase(phrase) {
 	newurl = {/literal}'{$singleSearchPhraseUrl}'{literal} + "&phrase=" + phrase; 
 	document.location = newurl;
@@ -22,7 +21,11 @@ function showSingleSearchPhrase(phrase) {
 </ul>
 </div>
 
-<div id="main" class="paneldivMain">
+<div id="cover" class="paneldivMain">
+{include file="SmartLoggent/templates/panelDivMain.tpl"}
+</div>
+
+<div id="main" class="paneldiv">
 	<div>
 		<h2 class="sl_hasdescription">{'LOC_SL_SearchPhraseOverviewPageTitle'|translate}</h2>
 		<div class="sl_description_wrapper">
@@ -38,7 +41,10 @@ function showSingleSearchPhrase(phrase) {
 
 <div id="metrics" class="paneldiv">
 {foreach from=$searchPhraseMetrics item=metric}
+<div class="metricgraph">
 	{$metric}
+</div>
+</br>
 {/foreach}
 </div>
 
@@ -55,18 +61,19 @@ function showSingleSearchPhrase(phrase) {
 </div>
 
 {foreach from=$detailcharts item=chart name=headdiv}
-{if !$smarty.foreach.headdiv.first}
 <div id='colunmInfo{$chart.metric}' class='columndiv'>
-<h2>Metric: {$chart.title}</h2>
+<h2>Metric: {$chart.title}
+<a href="javascript:hideColumnInfo({$chart.metric});">
+	<img src="plugins/SmartLoggent/images/close.png" align="right" border="0" style="padding-right: 10px" />
+</a>
+</h2>
 <hr>
 {$chart.chartmetric}
 <br/>
 {$chart.chartevolution}
 <center>
+<br/><br/>
 <a href="javascript:hideColumnInfo({$chart.metric});">CLOSE THIS WINDOW</a>
 </center>
 </div>
-{/if}
 {/foreach}
-
-

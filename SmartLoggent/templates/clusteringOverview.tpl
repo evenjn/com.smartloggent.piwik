@@ -26,7 +26,11 @@ Cluster analysis:
 </ul>
 </div>
 
-<div id="main" class="paneldivMain">
+<div id="cover" class="paneldivMain">
+{include file="SmartLoggent/templates/panelDivMain.tpl"}
+</div>
+
+<div id="main" class="paneldiv">
 	<br/><br/>
 	{$clusters}
 </div>

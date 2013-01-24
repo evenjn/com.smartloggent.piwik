@@ -1,5 +1,7 @@
 function SL_InteractiveTable(selector) {
-	$(selector + ' table tbody tr td span.label')
+	
+  $(selector + ' table tbody tr').css({'background-color':'red'});
+	$(selector + ' table tbody tr')
 	.css('cursor', 'pointer')
 	.click(function() {
 		var $this = $(this);
@@ -47,6 +49,7 @@ $(document).ready(function() {
 	}).live('click', function() {
 		$(this).next().toggle();
 	});
+		
 });
 
 function showDiv(id) {

@@ -60,33 +60,13 @@ function hideColumnInfo(column)
 			
 			<tbody>
 			{foreach from=$arrayDataTable item=row}
-			<tr
-				annotation="{$row.metadata.annotation}"
-				type="{$row.metadata.type}"
-				{if $row.idsubdatatable && $javascriptVariablesToSet.controllerActionCalledWhenRequestSubTable != null}
-				class="subDataTable"
-				id="{$row.idsubdatatable}"
-				{/if}
-				{if isset($row.issummaryrow) && $row.issummaryrow && $properties.highlight_summary_row}
-				class="highlight"
-				{/if}
-			>
+			<tr annotation="{$row.metadata.annotation|utf8_decode|htmlentities}" type="{$row.metadata.type}" {if $row.idsubdatatable && $javascriptVariablesToSet.controllerActionCalledWhenRequestSubTable != null}class="subDataTable" id="{$row.idsubdatatable}"{/if}{if isset($row.issummaryrow) && $row.issummaryrow && $properties.highlight_summary_row} class="highlight"{/if}>
 				{foreach from=$dataTableColumns item=column name=colitem}				
-				<td
-					{if $smarty.foreach.colitem.first}
-					onClick="showSingleClasses('{$row.metadata.annotation}', '{$row.metadata.sl_id}');"
-					{/if}
-				>
+				<td {if $smarty.foreach.colitem.first} onClick="showSingleClasses('{$row.columns.label}');" {/if}>
 					{include file="CoreHome/templates/datatable_cell.tpl"}
 				</td>
 				{/foreach}
-				<td align="center">
-				{if isset($row.metadata.sl_hasSubclasses) && $row.metadata.sl_hasSubclasses}
-					<a
-						href="javascript:showSubClasses('{$row.metadata.annotation}', '{$row.metadata.sl_id}');"
-					><img width="24" height="24" border="0" src="plugins/SmartLoggent/images/browse.jpg"/></a>
-				{/if}
-				</td>
+				<td align="center"><a href="javascript:showSubClasses('{$row.columns.label}');""><img width="24" height="24" border="0" src="plugins/SmartLoggent/images/browse.jpg"/></a></td>
 			</tr>
 			{/foreach}
 			</tbody>

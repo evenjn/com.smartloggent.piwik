@@ -1,7 +1,4 @@
 <script>
-{literal}
-
-{/literal}
 
 function showColumnInfo(column) 
 {literal}{{/literal}
@@ -10,7 +7,7 @@ function showColumnInfo(column)
 			hideColumnInfo({$column});
 		{/if}
 	{/foreach}
-	id = '#colunmInfo' + column.toString();
+	id = '#colunmInfo' + column.toString();	
 	{literal}$(id).fadeIn();{/literal}
 {literal}}{/literal}
 

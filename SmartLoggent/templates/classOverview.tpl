@@ -12,20 +12,24 @@
 {literal}
 <script>
 
-function showSingleClasses(class_name, class_id) {
-	newurl = {/literal}'{$singleClassUrl}'{literal} + "&className=" + class_name + "&classId=" + class_id; 
+function showSingleClasses(class_str) {
+	newurl = {/literal}'{$singleClassUrl}'{literal} + "&class=" + class_str; 
 	document.location = newurl;
 }
 
-function showSubClasses(class_name, class_id) {
-	newurl = {/literal}'{$subClassUrl}'{literal} + "&className=" + class_name + "&classId=" + class_id; 
+function showSubClasses(class_str) {
+	newurl = {/literal}'{$subClassUrl}'{literal} + "&class=" + class_str; 
 	document.location = newurl;
 }
 
 </script>
 {/literal}
 
-<div id="main" class="paneldivMain">
+<div id="cover" class="paneldivMain">
+{include file="SmartLoggent/templates/panelDivMain.tpl"}
+</div>
+
+<div id="main" class="paneldiv">
 	<div>
 		<h2 class="sl_hasdescription">{'LOC_SL_ClassOverviewPageTitle'|translate}</h2>
 		<div class="sl_description_wrapper">
@@ -50,14 +54,19 @@ function showSubClasses(class_name, class_id) {
 </div>
 
 {foreach from=$detailcharts item=chart name=headdiv}
-{if !$smarty.foreach.headdiv.first}
 <div id='colunmInfo{$chart.metric}' class='columndiv'>
-<h2>Metric: {$chart.title}</h2>
+<h2>Metric: {$chart.title}
+<a href="javascript:hideColumnInfo({$chart.metric});">
+	<img src="plugins/SmartLoggent/images/close.png" align="right" border="0" style="padding-right: 10px" />
+</a>
+</h2>
 <hr>
 {$chart.chartevolution}
 <center>
 <a href="javascript:hideColumnInfo({$chart.metric});">CLOSE THIS WINDOW</a>
 </center>
 </div>
-{/if}
 {/foreach}
+
+{literal}
+{/literal}
