@@ -64,8 +64,9 @@ public function searchPhrase()
 			$result_searchPhraseMetrics = $this->getTopChart(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, $metric, true, true);
 			
 			//$result_detail_metric_chart = $this->getTopChart(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, $metric, true, true);
-			$result_detail_metric_chart = $this->getCloud(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 5, $metric);
+			$result_detail_metric_chart = $this->getCloud(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 5, -1, $metric);
 			
+			//TODO
 			$result_detail_evolution_chart = $this->getGraph('get', $metric, 5, -1, Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 'graphEvolution');
 				
 			$searchPhraseMetrics[] = $result_searchPhraseMetrics;
@@ -79,7 +80,7 @@ public function searchPhrase()
 		$view->searchPhraseMetrics = $searchPhraseMetrics;
 		$view->searchPhraseEvolution = $this->getGraph('get', Piwik_SmartLoggent_API::INDEX_NB_VISITS, 3, -1, Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 'graphEvolution');
 		$view->searchPhrasePie = $this->getPie();
-		$view->searchPhraseTagCloud = $this->getCloud(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 5, Piwik_SmartLoggent_API::INDEX_NB_VISITS);
+		$view->searchPhraseTagCloud = $this->getCloud(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 5, -1, Piwik_SmartLoggent_API::INDEX_NB_VISITS);
 		$view->detailcharts = $detailcharts;
 
 		echo $view->render();
@@ -183,16 +184,39 @@ public function classes()
 	public function singleClasses() {
 		$view = new Piwik_View('SmartLoggent/templates/SingleClasses.tpl');
 		$class = Piwik_Common::getRequestVar("class");
-		$view->searchPhraseClass = $this->getSearchPhraseClassData('getSearchPhraseClassData', $class);
+
 		$view->class = $class;
 
+		$view->searchPhraseClass  = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				10,
+				array('SLClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+				"singleClassDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
+		
 		$singleClassesMetrics = array();
 		$detailcharts= array();
 
 		foreach ($this->array_metrics as $metric) {
-			$result_singleClassesMetrics = $this->getSearchPhraseClassMetricsGraph($metric);
-			$result_detail_evolution_chart = $this->getSingleClassDetailEvolution("getSingleClassDetailEvolutionData", array('metric' => $metric));
+			//$result_singleClassesMetrics = $this->getSearchPhraseClassMetricsGraph($metric);
+			$result_singleClassesMetrics = Piwik_Translate($this->array_metrics_titles[$metric]) . "<br/>" . 
+				$this->getGraph('getDataFiltered',
+				$metric,
+				4,		
+				array('SLClass'=>Piwik_SmartLoggent_API::encodeString($class)), 
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 
+				'graphVerticalBar'
+			);
+			
+			//$result_detail_evolution_chart = $this->getSingleClassDetailEvolution("getSingleClassDetailEvolutionData", array('metric' => $metric));
 
+			$result_detail_evolution_chart = $this->getGraph('getDataFiltered',
+					$metric,
+					10,
+					array('SLClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+					'graphEvolution');
+			
 			$singleClassesMetrics[] = $result_singleClassesMetrics;
 			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
 			$detailcharts[$metric]['metric'] = $metric;
@@ -201,7 +225,16 @@ public function classes()
 		}
 
 		$view->singleClassesMetrics = $singleClassesMetrics;
-		$view->singleClassesEvolution = $this->getSingleClassPhraseEvolution();
+		
+		//$view->singleClassesEvolution = $this->getSingleClassPhraseEvolution();
+		$view->singleClassesEvolution = $this->getGraph('getDataFiltered',
+						Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+						30,
+						array('SLClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+						Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+						'graphEvolution'
+				);
+		
 		$view->detailcharts = $detailcharts;
 		$view->namedEntitiesDistribution = $this->getSingleClassNamedEntitiesDistributionPie();
 		$view->namedEntitiesPopularity = $this->getSingleClassNamedEntitiesPopularityGraph();
@@ -626,6 +659,7 @@ public function classes()
 		return $result;
 	}
 
+	//DEPRECATED
 	public function getSearchPhraseClassData($source=-1, $class=-1) {
 
 		static $sf;
@@ -761,6 +795,7 @@ public function classes()
 		return $result;
 	}
 
+	//DEPRECATED
 	public function getSingleClassDetailEvolution($source=-1, $params = -1)
 	{
 		static $src;
@@ -1719,11 +1754,11 @@ public function classes()
 		);
 	}
 	
-	public function getTable($function=-1, $metric=-1, $limit=3, $arFilters = -1, $template = -1, $dimension = -1)
+	public function getTable($function=-1, $metric=-1, $limit=5, $arFilters = -1, $template = -1, $dimension = -1)
 	{
 		static $mt; if ($metric != -1) $mt = $metric;
 		static $fn; if ($function != -1) $fn = $function;
-		static $lm; if ($limit != -1) $lm = $limit;
+		static $lm; if ($limit != 5) $lm = $limit;
 		static $arFlt; if ($arFilters != -1) $arFlt = $arFilters;
 		static $tpl; if ($template != -1) $tpl = $template;
 		static $dim; if ($dimension != -1) $dim = $dimension;
@@ -1755,19 +1790,23 @@ public function classes()
 		return $pieGraph;
 	}
 	
-	public function getCloud($dimension = -1, $limit = -1, $metric = -1) {
+	public function getCloud($dimension = -1, $limit = 5, $arFilters = -1, $metric = -1) {
 		
 		static $dim; if ($dimension != -1) $dim = $dimension;
-		static $lm; if ($limit != -1) $lm = $limit;
+		static $lm; if ($limit != 5) $lm = $limit;
 		static $mt; if ($metric != -1) $mt = $metric;
+		static $arFlt; if ($arFilters != -1) $arFlt = $arFilters;
 		
 		$idSite = Piwik_Common::getRequestVar('idSite', '', 'string');
 		$period = Piwik_Common::getRequestVar('period', '', 'string');
 		$date = Piwik_Common::getRequestVar('date', '', 'string');
 		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
 		
-		$dataTable = Piwik_SmartLoggent_API::get($idSite, $period, $date, $segment, Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
-		
+		if ($arFlt)
+			$dataTable = Piwik_SmartLoggent_API::getDataFiltered($idSite, $period, $date, $segment, $arFlt, $dim);
+		else
+			$dataTable = Piwik_SmartLoggent_API::get($idSite, $period, $date, $segment, $dim);
+				
 		$view = Piwik_ViewDataTable::factory('cloud');
 		$view->init( $this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase' );
 		$view->setUniqueIdViewDataTable ($this->getUUID());
@@ -1778,11 +1817,11 @@ public function classes()
 		return $result;		
 	}
 	
-	public function getGraph($function=-1, $metric=-1, $limit=3, $arFilters = -1, $dimension = -1, $type = -1)
+	public function getGraph($function=-1, $metric=-1, $limit=5, $arFilters = -1, $dimension = -1, $type = -1)
 	{		
 		static $mt; if ($metric != -1) $mt = $metric;
 		static $fn; if ($function != -1) $fn = $function;
-		static $lm; if ($limit != -1) $lm = $limit;
+		static $lm; if ($limit != 5) $lm = $limit;
 		static $arFlt; if ($arFilters != -1) $arFlt = $arFilters;
 		static $dim; if ($dimension != -1) $dim = $dimension;
 		static $tp; if ($type != -1) $tp = $type;
@@ -1793,7 +1832,7 @@ public function classes()
 		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
 	
 		if ($arFlt)
-			$dataTable = Piwik_SmartLoggent_API::$fn($idSite, $period, $date, $segment, $arFlt);
+			$dataTable = Piwik_SmartLoggent_API::$fn($idSite, $period, $date, $segment, $arFlt, $dim);
 		else
 			$dataTable = Piwik_SmartLoggent_API::$fn($idSite, $period, $date, $segment, $dim);
 		
