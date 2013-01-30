@@ -11,8 +11,7 @@ function showSingleCluster(cluster_str) {
 {/literal}
 </script>
 
-<div style="float: left;" class="listmenu">
-Cluster analysis:
+<div style="float: left;" class="listmenu" >
 <select id="can">
 {foreach from=$clusterAnalysis item=can}
 	<option {if $canValue == $can.value}selected{/if} value="{$can.value}">{$can.title}</option>
@@ -48,14 +47,16 @@ Cluster analysis:
 </div>
 
 {foreach from=$detailcharts item=chart name=headdiv}
-{if !$smarty.foreach.headdiv.first}
 <div id='colunmInfo{$chart.metric}' class='columndiv'>
-<h2>Metric: {$chart.title}</h2>
+<h2>Metric: {$chart.title}
+<a href="javascript:hideColumnInfo({$chart.metric});">
+	<img src="plugins/SmartLoggent/images/close.png" align="right" border="0" style="padding-right: 10px" />
+</a>
+</h2>
 <hr>
 {$chart.chartevolution}
 <center>
 <a href="javascript:hideColumnInfo({$chart.metric});">CLOSE THIS WINDOW</a>
 </center>
 </div>
-{/if}
 {/foreach}

@@ -18,7 +18,11 @@ function showSingleClass(class_str) {
 </ul>
 </div>
 
-<div id="main" class="paneldivMain">
+<div id="cover" class="paneldivMain">
+{include file="SmartLoggent/templates/panelDivMain.tpl"}
+</div>
+
+<div id="main" class="paneldiv">
 	<h1>{$class}</h1>
 	{$subClasses}
 </div>
@@ -36,14 +40,16 @@ function showSingleClass(class_str) {
 </div>
 
 {foreach from=$detailcharts item=chart name=headdiv}
-{if !$smarty.foreach.headdiv.first}
 <div id='colunmInfo{$chart.metric}' class='columndiv'>
-<h2>Metric: {$chart.title}</h2>
+<h2>Metric: {$chart.title}
+<a href="javascript:hideColumnInfo({$chart.metric});">
+	<img src="plugins/SmartLoggent/images/close.png" align="right" border="0" style="padding-right: 10px" />
+</a>
+</h2>
 <hr>
 {$chart.chartevolution}
 <center>
 <a href="javascript:hideColumnInfo({$chart.metric});">CLOSE THIS WINDOW</a>
 </center>
 </div>
-{/if}
 {/foreach}

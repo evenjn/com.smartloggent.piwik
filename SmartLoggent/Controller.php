@@ -264,16 +264,16 @@ public function classes()
 		foreach ($this->array_metrics as $metric) {
 			//$result_subClassMetrics = $this->getSubClassesMetricGraph($class, $metric);
 			$result_subClassMetrics  = $this->getGraph('getDataFiltered',
-					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+					$metric,
 					5,
 					array('SLSuperClass'=>$slid),
-					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+					Piwik_SmartLoggent_API::DIM_CLASS,
 					'graphVerticalBar'
 			);
 
 			//$result_detail_evolution_chart = $this->getSubClassDetailEvolution("getSubClassDetailEvolutionData", array('metric' => $metric, 'class' => $class));
 			$result_detail_evolution_chart  = $this->getGraph('getDataFiltered',
-					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+					$metric,
 					5,
 					array('SLSuperClass'=>$slid),
 					Piwik_SmartLoggent_API::DIM_CLASS,
@@ -289,7 +289,14 @@ public function classes()
 		
 		$view->subClassesMetrics = $subClassesMetrics;
 		$view->detailcharts = $detailcharts;
-		$view->subClassesEvolution = $this->getSubClassesEvolution($class);
+		 
+		$view->subClassesEvolution = $this->getGraph('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				5,
+				array('SLSuperClass'=>$slid),
+				Piwik_SmartLoggent_API::DIM_CLASS,
+				'graphEvolution'
+		);
 		
 		echo $view->render();
 	}
@@ -297,7 +304,7 @@ public function classes()
 	public function clustering()
 	{
 		$view = new Piwik_View('SmartLoggent/templates/clusteringOverview.tpl');
-		
+
 		$clusterAnalysis = Piwik_SmartLoggent_API::getClusterAnalysis();
 		$view->clusterAnalysis = $clusterAnalysis;
 		
@@ -312,12 +319,32 @@ public function classes()
 		$view->canUrl = $urlIndex . "#" . substr($urlCan, 1);
 		$view->singleClusterUrl = $urlIndex . "#" . substr($singleClusterUrl, 1);
 		
+		$view->clusters = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				10,
+				array("SLClusterAnalysis"=>$can),
+				"clusterDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_CLUSTER);
+		
 		$clusterMetrics = array();
 		$detailcharts = array();
 		
 		foreach ($this->array_metrics as $metric) {
-			$result_clusterMetrics = $this->getClusterMetricGraph($metric);
-			$result_detail_evolution_chart = $this->getClusterDetailEvolution($metric);
+			$result_clusterMetrics = $this->getGraph('getDataFiltered',
+					$metric,
+					4,
+					array("SLClusterAnalysis"=>$can),
+					Piwik_SmartLoggent_API::DIM_CLUSTER,
+					'graphVerticalBar'
+			);
+			
+			$result_detail_evolution_chart = $this->getGraph('getDataFiltered',
+					$metric,
+					4,
+					array("SLClusterAnalysis"=>$can),
+					Piwik_SmartLoggent_API::DIM_CLUSTER,
+					'graphEvolution'
+			);
 		
 			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
 			$detailcharts[$metric]['metric'] = $metric;
@@ -329,8 +356,13 @@ public function classes()
 		$view->clusterMetrics = $clusterMetrics;
 		$view->detailcharts = $detailcharts;
 		
-		$view->clusters = $this->getClusters(true);
-		$view->evolution = $this->getClusterEvolution();
+		$view->evolution = $this->getGraph('getDataFiltered',
+					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+					5,
+					array("SLClusterAnalysis"=>$can),
+					Piwik_SmartLoggent_API::DIM_CLUSTER,
+					'graphEvolution'
+			);
 		
 		echo $view->render();
 

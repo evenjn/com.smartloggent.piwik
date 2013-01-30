@@ -29,6 +29,10 @@ function showSubClasses(classid_str, class_str) {
 {include file="SmartLoggent/templates/panelDivMain.tpl"}
 </div>
 
+<div id="cover" class="paneldiv">
+{include file="SmartLoggent/templates/panelDivMain.tpl"}
+</div>
+
 <div id="main" class="paneldiv">
 	<div>
 		<h2 class="sl_hasdescription">{'LOC_SL_ClassOverviewPageTitle'|translate}</h2>
@@ -67,6 +71,3 @@ function showSubClasses(classid_str, class_str) {
 </center>
 </div>
 {/foreach}
-
-{literal}
-{/literal}
