@@ -183,7 +183,7 @@ public function classes()
 		$view->searchPhraseClass  = $this->getTable('getDataFiltered',
 				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 				10,
-				array('SLClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+				array('SLClass'=>Piwik_SmartLoggent_API::encodeString($slid)),
 				"singleClassDatatable.tpl",
 				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
 		
@@ -196,7 +196,7 @@ public function classes()
 				$this->getGraph('getDataFiltered',
 				$metric,
 				4,		
-				array('SLClass'=>Piwik_SmartLoggent_API::encodeString($class)), 
+				array('SLClass'=>Piwik_SmartLoggent_API::encodeString($slid)), 
 				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 
 				'graphVerticalBar'
 			);
@@ -206,7 +206,7 @@ public function classes()
 			$result_detail_evolution_chart = $this->getGraph('getDataFiltered',
 					$metric,
 					10,
-					array('SLClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+					array('SLClass'=>Piwik_SmartLoggent_API::encodeString($slid)),
 					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
 					'graphEvolution');
 			
@@ -240,14 +240,15 @@ public function classes()
 	public function subClasses() {
 		$view = new Piwik_View('SmartLoggent/templates/SubClasses.tpl');
 		$class = Piwik_Common::getRequestVar("class");
-
+		$slid = Piwik_Common::getRequestVar("classid");
+		
 		$view->class = $class;
 		
 		//$view->subClasses = $this->getSubClasses('getSearchPhraseClassData', $class);
 		$view->subClasses = $this->getTable('getDataFiltered',
 				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 				10,
-				array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+				array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($slid)),
 				"subClassDatatable.tpl",
 				Piwik_SmartLoggent_API::DIM_CLASS);
 			
@@ -265,7 +266,7 @@ public function classes()
 			$result_subClassMetrics  = $this->getGraph('getDataFiltered',
 					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 					5,
-					array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+					array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($slid)),
 					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
 					'graphVerticalBar'
 			);
@@ -274,7 +275,7 @@ public function classes()
 			$result_detail_evolution_chart  = $this->getGraph('getDataFiltered',
 					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 					5,
-					array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+					array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($slid)),
 					Piwik_SmartLoggent_API::DIM_CLASS,
 					'graphEvolution'
 			);

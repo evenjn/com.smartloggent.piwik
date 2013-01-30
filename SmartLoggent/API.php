@@ -319,7 +319,6 @@ class Piwik_SmartLoggent_API
 			while (list($k,$v) = each($arFlt)) {
 			$segment = Piwik_SmartLoggent_SegmentEditor::set($k, '==', $v, $segment);
 		}
-	
 		return Piwik_SmartLoggent_API::get($idSite, $period, $date, $segment, $dimension);
 	}
 	
