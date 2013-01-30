@@ -171,7 +171,6 @@ class Piwik_SmartLoggent_API
 	
 	public function get($idSite, $period, $date, $segment = false, $dimension = self::DIM_SEARCHPHRASE)
 	{
-		$segment = Piwik_Common::getRequestVar('segment', false, 'string');
 		$shards =  Piwik_SmartLoggent_SegmentEditor::split($segment, 'SL'.$dimension);
 		$result;
 		$firstDatatable = true;
