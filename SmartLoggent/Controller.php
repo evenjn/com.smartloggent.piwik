@@ -373,14 +373,29 @@ public function classes()
 		$view = new Piwik_View('SmartLoggent/templates/SingleCluster.tpl');
 		
 		$cluster = Piwik_Common::getRequestVar("cluster");
+		$clusterid = Piwik_Common::getRequestVar("clusterid");
+		
 		$view->cluster = $cluster;
 		
 		$singleClusterMetrics = array();
 		$detailcharts = array();
 		
 		foreach ($this->array_metrics as $metric) {
-			$result_singleClusterMetrics = $this->getSingleClusterMetricGraph($cluster, $metric);
-			$result_detail_evolution_chart = $this->getSingleClusterPhraseDetailEvolution(array("cluster" => $cluster, "metric" => $metric));
+			$result_singleClusterMetrics = $this->getGraph('getDataFiltered',
+				$metric,
+				5,
+				array("SLCluster"=>$clusterid),
+				Piwik_SmartLoggent_API::DIM_CLUSTER,
+				'graphVerticalBar'
+			);
+			
+			$result_detail_evolution_chart = $this->getGraph('getDataFiltered',
+				$metric,
+				5,
+				array("SLCluster"=>$clusterid),
+				Piwik_SmartLoggent_API::DIM_CLUSTER,
+				'graphEvolution'
+			);
 		
 			$singleClusterMetrics[] = $result_singleClusterMetrics;
 			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
@@ -389,15 +404,44 @@ public function classes()
 		
 		}
 		
-		$view->evolution = $this->getSingleClusterEvolution($cluster);
+		$view->evolution = $this->getGraph('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				5,
+				array("SLCluster"=>$clusterid),
+				Piwik_SmartLoggent_API::DIM_CLUSTER,
+				'graphEvolution'
+		);
+		
 		$view->distribution = $this->getSingleClusterDistributionPie($cluster);
-		$view->searchPhrases = $this->getSingleClusterSearchPhrases($cluster);
+		
+		$view->searchPhrases = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				10,
+				array("SLCluster"=>$clusterid),
+				"searchPhraseDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
+		
 		$view->singleClusterMetrics = $singleClusterMetrics;
-		$view->searchPhraseEvolution = $this->getSingleClusterPhraseEvolution($cluster);
+		
+		$view->searchPhraseEvolution = $this->getGraph('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				5,
+				array("SLCluster"=>$clusterid),
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+				'graphEvolution'
+			);
+		
 		$view->detailcharts = $detailcharts;
+		
 		$view->namedentitiesdistribution = $this->getSingleClusterNamedEntitiesDistributionPie($cluster);
 		$view->namedentitiespopularity = $this->getSingleClusterNamedEntitiesPopularity($cluster);
-		$view->classification = $this->getSingleClusterClassification($cluster);
+		
+		$view->classification = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				10,
+				array("SLCluster"=>$clusterid),
+				"classDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_CLASS);
 		
 		echo $view->render();
 	}

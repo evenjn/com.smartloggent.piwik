@@ -3,8 +3,8 @@
 
 <script>
  {literal}
-function showSingleCluster(cluster_str) {
-	newurl = {/literal}'{$singleClusterUrl}'{literal} + "&cluster=" + cluster_str; 
+function showSingleCluster(cluster_str, cluster_id) {
+	newurl = {/literal}'{$singleClusterUrl}'{literal} + "&cluster=" + cluster_str + "&clusterid=" + cluster_id; 
 	document.location = newurl;
 	
 }
