@@ -189,13 +189,17 @@ public function classes()
 		
 		$singleClassesMetrics = array();
 		$detailcharts= array();
-		$originalSegment = Piwik_Common::getRequestVar('segment', false, 'string');
+
 		foreach ($this->array_metrics as $metric) {
-			$_GET['segment'] = Piwik_SmartLoggent_SegmentEditor::set("SLClass", "==", $slid, $originalSegment);
-			$singleClassesMetrics[] =
-			"<h2>".Piwik_Translate('LOC_SL_Chart_'.Piwik_SmartLoggent_API::DIM_SEARCHPHRASE.'_by_'.$metric)
-			."</h2>".$this->getTopChart(Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, $metric, true, true);
-			$_GET['segment'] = $originalSegment;
+			//$result_singleClassesMetrics = $this->getSearchPhraseClassMetricsGraph($metric);
+			$result_singleClassesMetrics = Piwik_Translate($this->array_metrics_titles[$metric]) . "<br/>" . 
+				$this->getGraph('getDataFiltered',
+				$metric,
+				4,		
+				array('SLClass'=>Piwik_SmartLoggent_API::encodeString($class)), 
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE, 
+				'graphVerticalBar'
+			);
 			
 			//$result_detail_evolution_chart = $this->getSingleClassDetailEvolution("getSingleClassDetailEvolutionData", array('metric' => $metric));
 
@@ -236,9 +240,17 @@ public function classes()
 	public function subClasses() {
 		$view = new Piwik_View('SmartLoggent/templates/SubClasses.tpl');
 		$class = Piwik_Common::getRequestVar("class");
-		$view->subClasses = $this->getSubClasses('getSearchPhraseClassData', $class);
+
 		$view->class = $class;
 		
+		//$view->subClasses = $this->getSubClasses('getSearchPhraseClassData', $class);
+		$view->subClasses = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				10,
+				array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+				"subClassDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_CLASS);
+			
 		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
 				'action' => 'index',
 		));
@@ -249,9 +261,24 @@ public function classes()
 		$detailcharts = array();
 		
 		foreach ($this->array_metrics as $metric) {
-			$result_subClassMetrics = $this->getSubClassesMetricGraph($class, $metric);
-			$result_detail_evolution_chart = $this->getSubClassDetailEvolution("getSubClassDetailEvolutionData", array('metric' => $metric, 'class' => $class));
-		
+			//$result_subClassMetrics = $this->getSubClassesMetricGraph($class, $metric);
+			$result_subClassMetrics  = $this->getGraph('getDataFiltered',
+					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+					5,
+					array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+					'graphVerticalBar'
+			);
+
+			//$result_detail_evolution_chart = $this->getSubClassDetailEvolution("getSubClassDetailEvolutionData", array('metric' => $metric, 'class' => $class));
+			$result_detail_evolution_chart  = $this->getGraph('getDataFiltered',
+					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+					5,
+					array('SLSuperClass'=>Piwik_SmartLoggent_API::encodeString($class)),
+					Piwik_SmartLoggent_API::DIM_CLASS,
+					'graphEvolution'
+			);
+			
 			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
 			$detailcharts[$metric]['metric'] = $metric;
 			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);

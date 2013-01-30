@@ -66,7 +66,7 @@ function hideColumnInfo(column)
 					{include file="CoreHome/templates/datatable_cell.tpl"}
 				</td>
 				{/foreach}
-				<td align="center"><a href="javascript:showSubClasses('{$row.metadata.sl_id}', '{$row.columns.label}');""><img width="24" height="24" border="0" src="plugins/SmartLoggent/images/browse.jpg"/></a></td>
+				<td align="center"><a href="javascript:showSubClasses('{$row.metadata.sl_id}', '{$row.columns.label}');"><img width="24" height="24" border="0" src="plugins/SmartLoggent/images/browse.jpg"/></a></td>
 			</tr>
 			{/foreach}
 			</tbody>
