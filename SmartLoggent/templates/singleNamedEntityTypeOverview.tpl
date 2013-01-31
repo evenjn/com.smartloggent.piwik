@@ -71,14 +71,16 @@ function showSingleNamedEntityType(ne) {
 {/foreach}
 
 {foreach from=$searchPhrasesDetailMetrics item=chart name=headdiv}
-{if !$smarty.foreach.headdiv.first}
 <div id='columnInfoSF{$chart.metric}' class='columndiv'>
-<h2>Metric: {$chart.title}</h2>
+<h2>Metric: {$chart.title}
+<a href="javascript:hideColumnInfo({$chart.metric});">
+	<img src="plugins/SmartLoggent/images/close.png" align="right" border="0" style="padding-right: 10px" />
+</a>
+</h2>
 <hr>
 {$chart.chartmetric}
 <center>
 <a href="javascript:hideColumnInfoSF({$chart.metric});">CLOSE THIS WINDOW</a>
 </center>
 </div>
-{/if}
 {/foreach}
