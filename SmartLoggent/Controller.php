@@ -611,6 +611,65 @@ public function classes()
 		echo $view->render();
 	}
 	
+	public function searchWords() {
+		$view = new Piwik_View('SmartLoggent/templates/searchWordsOverview.tpl');
+		
+		$urlIndex = Piwik_Url::getCurrentQueryStringWithParametersModified(array('module' => 'CoreHome',
+				'action' => 'index',
+		));
+		$urlSw = Piwik_Url::getCurrentQueryStringWithParametersModified(array('action' => 'singleSearchWord'));
+		$view->singleSWUrl = $urlIndex . "#" . substr($urlSw, 1);
+		
+		$view->searchwords = $this->getTable('get',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				20,
+				-1,
+				"searchWordsDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_SEARCHWORD);
+		
+		$searchwordsMetrics = array();
+		$detailcharts= array();
+		
+		foreach ($this->array_metrics as $metric) {
+			$result_metrics = $this->getGraph('get',
+					$metric,
+					5,
+					-1,
+					Piwik_SmartLoggent_API::DIM_SEARCHWORD,
+					'graphVerticalBar'
+			);
+				
+			$result_detail_evolution_chart = $this->getGraph('get',
+					$metric,
+					5,
+					-1,
+					Piwik_SmartLoggent_API::DIM_SEARCHWORD,
+					'graphEvolution'
+			);
+								
+			$searchwordsMetrics[] = $result_metrics;
+				
+			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
+			$detailcharts[$metric]['metric'] = $metric;
+			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
+		
+		}
+		
+		$view->detailcharts = $detailcharts;
+		
+		$view->searchwordsMetric = $searchwordsMetrics;
+				
+		$view->searchwordsEvolution = $this->getGraph('get',
+					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+					5,
+					-1,
+					Piwik_SmartLoggent_API::DIM_SEARCHWORD,
+					'graphEvolution'
+			);
+		
+		echo $view->render();
+	}
+	
 	//DEPRECATED
 	public function getSearchPhrase($fetch=false, $limit=20, $metric=Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY)
 	{
