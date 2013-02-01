@@ -3,8 +3,8 @@
 
 <script>
  {literal}
-function showSingleNamedEntityType(ne) {
-	newurl = {/literal}'{$singleNEUrl}'{literal} + "&ne=" + ne; 
+function showSingleNamedEntityType(ne, ne_id) {
+	newurl = {/literal}'{$singleNEUrl}'{literal} + "&ne=" + ne + "&ne_id=" + ne_id; 
 	document.location = newurl;
 }
 {/literal}

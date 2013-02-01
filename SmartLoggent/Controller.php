@@ -509,13 +509,13 @@ public function classes()
 	public function singleNamedEntityType() {
 		$view = new Piwik_View('SmartLoggent/templates/singleNamedEntityTypeOverview.tpl');
 		$namedEntityType = Piwik_Common::getRequestVar("ne");
-		
+		$neid = Piwik_Common::getRequestVar("ne_id");
 		$view->namedEntityType = $namedEntityType;
 	
 		$view->singleNamedEntities = $this->getTable('getDataFiltered',
 				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 				20,
-				array("SLNamedEntity" => "1"),
+				array('SLNamedEntityType' => $neid),
 				"singleNamedEntityTypeDatatable.tpl",
 				Piwik_SmartLoggent_API::DIM_NAMEDENTITY);
 		
@@ -533,14 +533,26 @@ public function classes()
 			$result_NEMetrics = $this->getGraph('getDataFiltered',
 				$metric,
 				5,
-				array("SLNamedEntity" => "1"),
+				array('SLNamedEntityType' => $neid),
 				Piwik_SmartLoggent_API::DIM_NAMEDENTITY,
 				'graphVerticalBar'
 			);
 			
-			$result_detail_evolution_chart = $this->getNamedEntityTypeDetailEvolution("getNamedEntityTypeDetailEvolutionData", array('namedEntityType' => $namedEntityType, 'metric' => $metric));
+			$result_detail_evolution_chart = $this->getGraph('getDataFiltered',
+				$metric,
+				5,
+				array('SLNamedEntityType' => $neid),
+				Piwik_SmartLoggent_API::DIM_NAMEDENTITY,
+				'graphEvolution'
+			);
 			
-			$result_NESearchPhrasesDetailMetrics = $this->getSingleNESearchPhrasesMetricsGraph($metric);
+			$result_NESearchPhrasesDetailMetrics = $this->getGraph('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				5,
+				array('SLNamedEntityType' => $neid),
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+				'graphVerticalBar'
+			);
 			
 			$singleNEMetrics[] = $result_NEMetrics;
 			
@@ -554,17 +566,48 @@ public function classes()
 		}
 	
 		$view->singleNEMetrics = $singleNEMetrics;
-		$view->singleNEEvolution = $this->getNEEvolution($namedEntityType);
+		
+		$view->singleNEEvolution = $this->getGraph('getDataFiltered',
+				$metric,
+				5,
+				array('SLNamedEntityType' => $neid),
+				Piwik_SmartLoggent_API::DIM_NAMEDENTITY,
+				'graphEvolution'
+			);
+		
 		$view->detailcharts = $detailcharts;
 		
-		$view->searchPhrases = $this->getSearchPhrasesNamedEntityType(true, 20, $namedEntityType, "getSearchPhrasesNamedEntityType");
+		$view->searchPhrases = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				20,
+				array('SLNamedEntityType' => $neid),
+				"searchPhraseDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
+		
 		$view->searchPhrasesDetailMetrics = $searchPhrasesDetailMetrics;
-		$view->searchPhrasesEvolution = $this->getSingleNESearchPhrasesEvolutionGraph();
 		
-		$view->classes = $this->getSingleNamedEntityClassesData(true, 20, $namedEntityType, 'getSingleNamedEntityClassesData');
+		$view->searchPhrasesEvolution = $this->getGraph('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				5,
+				array('SLNamedEntityType' => $neid),
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+				'graphEvolution'
+			);
 		
-		$view->clusters = $this->getSingleNamedEntityClustersData(true, 20, $namedEntityType, 'getSingleNamedEntityClustersData');
-				
+		$view->classes = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				20,
+				array('SLNamedEntityType' => $neid),
+				"singleNamedEntityTypeClassesDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_CLASS);
+		
+		$view->clusters = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				20,
+				array('SLNamedEntityType' => $neid),
+				"singleNamedEntityTypeClustersDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_CLUSTER);
+		
 		echo $view->render();
 	}
 	
