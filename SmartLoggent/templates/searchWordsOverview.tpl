@@ -5,7 +5,7 @@
 <script>
 
 function showSingleSearchWord(sw) {
-	newurl = {/literal}'{$singleSWUrl}'{literal} + "&searchword=" + sw; 
+	newurl = {/literal}'{$singleSWUrl}'{literal} + "&sw=" + sw; 
 	document.location = newurl;
 }
 </script>

@@ -670,6 +670,60 @@ public function classes()
 		echo $view->render();
 	}
 	
+	public function singleSearchWord() {
+		$view = new Piwik_View('SmartLoggent/templates/singleSearchWordOverview.tpl');
+		$searchWord = Piwik_Common::getRequestVar("sw");
+		
+		$searchPhrasesMetrics = array();
+		
+		$view->searchWord = $searchWord;
+		
+		$view->detailcharts = array();
+		
+		$view->searchwordEvolution = $this->getGraph('getDataFiltered',
+					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+					5,
+					array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+					Piwik_SmartLoggent_API::DIM_SEARCHWORD,
+					'graphEvolution'
+			);;
+		
+		$view->distribution = "";
+		
+		$view->searchPhrases = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				20,
+				array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+				"singleNamedEntityTypeClassesDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);;
+		
+		$view->searchPhrasesMetrics = $searchPhrasesMetrics;
+		
+		$view->searchPhrasesEvolution = $this->getGraph('getDataFiltered',
+					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+					5,
+					array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+					Piwik_SmartLoggent_API::DIM_SEARCHWORD,
+					'graphEvolution'
+			);
+		
+		$view->classes = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				20,
+				array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+				"singleNamedEntityTypeClassesDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_CLASS);
+		
+		$view->clusters = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				20,
+				array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+				"singleNamedEntityTypeClustersDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_CLUSTER);
+		
+		echo $view->render();
+	}
+	
 	//DEPRECATED
 	public function getSearchPhrase($fetch=false, $limit=20, $metric=Piwik_SmartLoggent_API::INDEX_WEIGHTED_CLICK_PROBABILITY)
 	{
