@@ -1,21 +1,11 @@
 <link rel="stylesheet" type="text/css" href="plugins/SmartLoggent/templates/sl.css" />
 <script src="plugins/SmartLoggent/templates/sl.js" />
 
-{literal}
-<script>
-
-function showSingleSearchWord(id, sw) {
-	newurl = {/literal}'{$singleSWUrl}'{literal} + "&swid=" + id + "&sw=" + sw; 
-	document.location = newurl;
-}
-</script>
-{/literal}
-
 <div style="float: left;" class="listmenu">
 <ul>
 <li><a href="javascript:showDiv('main');">Data</a></li>
-<li><a href="javascript:showDiv('metrics');">Metrics</a></li>
-<li><a href="javascript:showDiv('evolution');">Evolution</a></li>
+<li><a href="javascript:showDiv('metrics');">Metrics charts</a></li>
+<li><a href="javascript:showDiv('evolution');">Evolution chart</a></li>
 </ul>
 </div>
 
@@ -24,17 +14,20 @@ function showSingleSearchWord(id, sw) {
 </div>
 
 <div id="main" class="paneldiv">
-	{$searchwords}
+	{$languages}		
 </div>
 
 <div id="metrics" class="paneldiv">
-	{foreach from=$searchwordsMetric item=metric}
-		{$metric}
-	{/foreach}
+{foreach from=$languageMetrics item=metric}
+<div class="metricgraph">
+	{$metric}
+</div>
+</br>
+{/foreach}
 </div>
 
 <div id="evolution" class="paneldiv">
-	{$searchwordsEvolution}
+	{$languageEvolution}
 </div>
 
 {foreach from=$detailcharts item=chart name=headdiv}
@@ -47,10 +40,8 @@ function showSingleSearchWord(id, sw) {
 <hr>
 {$chart.chartevolution}
 <center>
+<br/><br/>
 <a href="javascript:hideColumnInfo({$chart.metric});">CLOSE THIS WINDOW</a>
 </center>
 </div>
 {/foreach}
-
-
-

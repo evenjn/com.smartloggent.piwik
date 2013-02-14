@@ -673,28 +673,56 @@ public function classes()
 	public function singleSearchWord() {
 		$view = new Piwik_View('SmartLoggent/templates/singleSearchWordOverview.tpl');
 		$searchWord = Piwik_Common::getRequestVar("sw");
+		$searchWord_id = Piwik_Common::getRequestVar("swid");
 		
 		$searchPhrasesMetrics = array();
 		
 		$view->searchWord = $searchWord;
 		
-		$view->detailcharts = array();
+		$detailcharts = array();
+
+		foreach ($this->array_metrics as $metric) {
+			$result_metrics = $this->getGraph('getDataFiltered',
+					$metric,
+					4,
+					array('SLSearchWord' => $searchWord_id),
+					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+					'graphVerticalBar'
+			);
+		
+			$result_detail_evolution_chart = $this->getGraph('getDataFiltered',
+					$metric,
+					4,
+					array('SLSearchWord' => $searchWord_id),
+					Piwik_SmartLoggent_API::DIM_SEARCHPHRASE,
+					'graphEvolution'
+			);
+			
+			$searchPhrasesMetrics[] = $result_metrics;
+			
+			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
+			$detailcharts[$metric]['metric'] = $metric;
+			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
+			
+		}
+		
+		$view->detailcharts = $detailcharts;
 		
 		$view->searchwordEvolution = $this->getGraph('getDataFiltered',
 					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 					5,
-					array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+					array('SLSearchWord' => $searchWord_id),
 					Piwik_SmartLoggent_API::DIM_SEARCHWORD,
 					'graphEvolution'
-			);;
+			);
 		
 		$view->distribution = "";
 		
 		$view->searchPhrases = $this->getTable('getDataFiltered',
 				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 				20,
-				array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
-				"singleNamedEntityTypeClassesDatatable.tpl",
+				array('SLSearchWord' => $searchWord_id),
+				"searchPhraseDatatable.tpl",
 				Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);;
 		
 		$view->searchPhrasesMetrics = $searchPhrasesMetrics;
@@ -702,7 +730,7 @@ public function classes()
 		$view->searchPhrasesEvolution = $this->getGraph('getDataFiltered',
 					Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 					5,
-					array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+					array('SLSearchWord' => $searchWord_id),
 					Piwik_SmartLoggent_API::DIM_SEARCHWORD,
 					'graphEvolution'
 			);
@@ -710,16 +738,66 @@ public function classes()
 		$view->classes = $this->getTable('getDataFiltered',
 				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 				20,
-				array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+				array('SLSearchWord' => $searchWord_id),
 				"singleNamedEntityTypeClassesDatatable.tpl",
 				Piwik_SmartLoggent_API::DIM_CLASS);
 		
 		$view->clusters = $this->getTable('getDataFiltered',
 				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 				20,
-				array('SLSearchWord' => Piwik_SmartLoggent_API::encodeString($searchWord)),
+				array('SLSearchWord' => $searchWord_id),
 				"singleNamedEntityTypeClustersDatatable.tpl",
 				Piwik_SmartLoggent_API::DIM_CLUSTER);
+		
+		echo $view->render();
+	}
+	
+	public function languages() {
+		$view = new Piwik_View('SmartLoggent/templates/languagesOverview.tpl');
+		
+		$view->languages = $this->getTable('get',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				20,
+				-1,
+				"languageDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_LANGUAGE);
+		
+		$languageMetrics = array();
+		$detailcharts = array();
+		
+		foreach ($this->array_metrics as $metric) {
+			$result_metrics = $this->getGraph('get',
+					$metric,
+					4,
+					-1,
+					Piwik_SmartLoggent_API::DIM_LANGUAGE,
+					'graphVerticalBar'
+			);
+		
+			$result_detail_evolution_chart = $this->getGraph('get',
+					$metric,
+					4,
+					-1,
+					Piwik_SmartLoggent_API::DIM_LANGUAGE,
+					'graphEvolution'
+			);
+
+			$languageMetrics[] = $result_metrics;
+			$detailcharts[$metric]['chartevolution'] = $result_detail_evolution_chart;
+			$detailcharts[$metric]['metric'] = $metric;
+			$detailcharts[$metric]['title'] = Piwik_Translate($this->array_metrics_titles[$metric]);
+		}
+		
+		$view->languageMetrics = $languageMetrics;
+		$view->detailcharts = $detailcharts;
+		
+		$view->languageEvolution = $this->getGraph('get',
+			Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+			4,
+			-1,
+			Piwik_SmartLoggent_API::DIM_LANGUAGE,
+			'graphEvolution'
+		);
 		
 		echo $view->render();
 	}
