@@ -3,8 +3,8 @@
 
 {literal}
 <script>
-function showSingleSearchPhrase(phrase) {
-	newurl = {/literal}'{$singleSearchPhraseUrl}'{literal} + "&phrase=" + phrase; 
+function showSingleSearchPhrase(phrase, phrase_id) {
+	newurl = {/literal}'{$singleSearchPhraseUrl}'{literal} + "&phrase=" + phrase + "&phrase_id=" + phrase_id; 
 	document.location = newurl;
 }
 

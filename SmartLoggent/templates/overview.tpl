@@ -10,5 +10,8 @@
 		</div>
 	</div>
 	
-	<div id="relatedSearchPhrases"></div>
 </div>
+
+{$evolution}
+<br/><br/>
+{$geo}

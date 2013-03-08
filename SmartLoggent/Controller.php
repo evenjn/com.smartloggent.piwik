@@ -31,16 +31,20 @@ class Piwik_SmartLoggent_Controller extends Piwik_Controller
 	{
 		$view = new Piwik_View('SmartLoggent/templates/overview.tpl');
 
-		$view1 = Piwik_ViewDataTable::factory('graphEvolution');
-		$view1->init($this->pluginName,  __FUNCTION__, 'SmartLoggent.getSearchPhrase');
-		$view1->setColumnsToDisplay( Piwik_SmartLoggent_API::INDEX_NB_VISITS);
-
+		$view->evolution = $this->getGraph('getSearchPhrase',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				10,
+				-1,
+				Piwik_SmartLoggent_API::DIM_NATURALSEARCHPHRASE,
+				'graphEvolution');
+		
+		$view->geo = $this->getPie();		
+	
 		echo $view->render();
 
-		$this->renderView($view1);
 	}
 
-public function searchPhrase()
+	public function searchPhrase()
 	{
 		$dimension = Piwik_SmartLoggent_API::DIM_SEARCHPHRASE;
 		$view = new Piwik_View('SmartLoggent/templates/searchPhraseOverview.tpl');
@@ -82,39 +86,42 @@ public function searchPhrase()
 	public function singleSearchPhrase() {
 		$view = new Piwik_View('SmartLoggent/templates/SingleSearchPhrase.tpl');
 		$phrase = Piwik_Common::getRequestVar("phrase");
+		$phrase_id = Piwik_Common::getRequestVar("phrase_id");
 		$view->phrase = $phrase;
-		//$view->searchPhraseEvolution = $this->getSearchPhraseEvolution('getSingleSearchEvolutionData', array('searchPhrase'=>$phrase));
-		//$view->searchPhraseNamedEntities = $this->getSingleSearchPhraseData(true, 10, $phrase, 'getSingleSearchPhraseNamedEntitiesData');
-		//$view->searchPhraseClass = $this->getSingleSearchPhraseData(true, 10, $phrase, 'getSingleSearchPhraseClassData');
-		//$view->searchPhraseCluster = $this->getSingleSearchPhraseData(true, 10, $phrase, 'getSingleSearchPhraseClusterData');
+
+		$view->searchPhraseNaturalSearch = $this->getTable('getDataFiltered',
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
+				5,
+				array('SLSearchPhrase'=>$phrase_id),
+				"searchPhraseDatatable.tpl",
+				Piwik_SmartLoggent_API::DIM_NATURALSEARCHPHRASE);
 		
-		$view->searchPhraseNaturalSearch = $this->getSingleSearchPhraseData(true, 10, $phrase, 'getSingleSearchPhraseNaturalSearchData');
-		$view->searchPhrasePie = $this->getSingleSearchPhasePie($phrase);
+		$view->searchPhrasePie = $this->getSingleSearchPhasePie($phrase_id);
 
 		$view->searchPhraseEvolution = $this->getGraph('getSearchPhraseFiltered', 
 																Piwik_SmartLoggent_API::INDEX_NB_VISITS, 
 																1, 
-																array('SLSearchPhrase'=>Piwik_SmartLoggent_API::encodeString($phrase)),
+																array('SLSearchPhrase'=>$phrase_id),
 																'graphEvolution');
 		
 		$view->searchPhraseNamedEntities = $this->getTable('getDataFiltered',
 															Piwik_SmartLoggent_API::INDEX_NB_VISITS, 
 															5,
-															array('SLSearchPhrase'=>Piwik_SmartLoggent_API::encodeString($phrase)),
+															array('SLSearchPhrase'=>$phrase_id),
 															"searchPhraseDatatable.tpl",
 															Piwik_SmartLoggent_API::DIM_SEARCHPHRASE);
 		
 		$view->searchPhraseClass = $this->getTable('getDataFiltered',
 									Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 									5,
-									array('SLSearchPhrase'=>Piwik_SmartLoggent_API::encodeString($phrase)),
+									array('SLSearchPhrase'=>$phrase_id),
 									"searchPhraseDatatable.tpl",
 									Piwik_SmartLoggent_API::DIM_CLASS);
 		
 		$view->searchPhraseCluster = $this->getTable('getDataFiltered',
 									Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 									5,
-									array('SLSearchPhrase'=>Piwik_SmartLoggent_API::encodeString($phrase)),
+									array('SLSearchPhrase'=>$phrase_id),
 									"searchPhraseDatatable.tpl",
 									Piwik_SmartLoggent_API::DIM_CLUSTER);
 		
