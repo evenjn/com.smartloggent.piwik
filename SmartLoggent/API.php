@@ -314,7 +314,7 @@ class Piwik_SmartLoggent_API
 
 	public function getDataFiltered($idSite, $period, $date, $segment, $dimension, $arFlt)
 	{
-		if ($arFlt)
+		if ($arFlt and is_array($arFlt))
 			while (list($k,$v) = each($arFlt)) {
 			$segment = Piwik_SmartLoggent_SegmentEditor::set($k, '==', $v, $segment);
 		}
