@@ -12,6 +12,13 @@ function showSingleSearchWord(id, sw) {
 {/literal}
 
 <div style="float: left;" class="listmenu">
+
+<select id="lang" onChange="document.location=mixUrl(window.location, 'language', this.options[this.selectedIndex].value);" name="language">>
+{foreach from=$availableLanguages item=language}	
+	<option {if $languageValue == $language.value}selected{/if} value="{$language.value}">{$language.label}</option>
+ {/foreach}
+</select>
+
 <ul>
 <li><a href="javascript:showDiv('main');">Data</a></li>
 <li><a href="javascript:showDiv('metrics');">Metrics</a></li>

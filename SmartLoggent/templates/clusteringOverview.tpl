@@ -12,6 +12,13 @@ function showSingleCluster(cluster_str, cluster_id) {
 </script>
 
 <div style="float: left;" class="listmenu" >
+
+<select id="lang" onChange="document.location=mixUrl(window.location, 'language', this.options[this.selectedIndex].value);" name="language">>
+{foreach from=$availableLanguages item=language}	
+	<option {if $languageValue == $language.value}selected{/if} value="{$language.value}">{$language.label}</option>
+ {/foreach}
+</select>
+<br/>
 <select id="can">
 {foreach from=$clusterAnalysis item=can}
 	<option {if $canValue == $can.value}selected{/if} value="{$can.value}">{$can.title}</option>

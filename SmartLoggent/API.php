@@ -312,7 +312,7 @@ class Piwik_SmartLoggent_API
 		return Piwik_SmartLoggent_API::get($idSite, $period, $date, $segment, self::DIM_SEARCHPHRASE);
 	}
 
-	public function getDataFiltered($idSite, $period, $date, $segment = false, $arFlt, $dimension)
+	public function getDataFiltered($idSite, $period, $date, $segment, $dimension, $arFlt)
 	{
 		if ($arFlt)
 			while (list($k,$v) = each($arFlt)) {

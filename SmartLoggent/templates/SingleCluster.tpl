@@ -2,6 +2,13 @@
 <script src="plugins/SmartLoggent/templates/sl.js" />
 
 <div style="float: left;" class="listmenu">
+
+<select id="lang" onChange="document.location=mixUrl(window.location, 'language', this.options[this.selectedIndex].value);" name="language">>
+{foreach from=$availableLanguages item=language}	
+	<option {if $languageValue == $language.value}selected{/if} value="{$language.value}">{$language.label}</option>
+ {/foreach}
+</select>
+
 <ul>
 <li><a href="javascript:showDiv('main');">Evolution</a></li>
 <li><a href="javascript:showDiv('distribution');">Distribution</a></li>

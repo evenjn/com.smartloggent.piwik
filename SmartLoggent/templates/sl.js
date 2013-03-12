@@ -58,3 +58,65 @@ function showDiv(id) {
 	$('.columndiv').fadeOut();
 	$('#' + id).fadeIn();
 }
+
+function mixUrl(url, param, value) {
+	newUrl = "";
+	
+	arUrl = (url + '').split("?");
+	site = arUrl[0];
+	params = arUrl[1];
+	arParams = params.split("&");
+	
+	newUrl = site + "?";
+	
+	found = 0;
+	
+	for (idx = 0; idx < arParams.length; idx++) {
+		arPSharp = arParams[idx].split("#")
+		
+		if (arPSharp.length == 2) {
+			arP1 = arPSharp[0].split("=")
+			key1 = arP1[0]
+			val1 = arP1[1]
+			
+			arP2 = arPSharp[1].split("=")
+			key2 = arP2[0]
+			val2 = arP2[1]
+			
+			if (key1 == param) {
+				found = 1;
+				val1 = value
+			}
+				
+			if (key2 == param) {
+				found = 1; 
+				val2 = value
+			}
+				
+			newUrl = newUrl + key1 + "=" + val1 + "#" + key2 + "=" + val2 + "&";
+				
+		}
+		else {
+			
+			arP = arParams[idx].split("=");
+		
+			key = arP[0];
+			val = arP[1]
+
+			if (key == param) {
+				found = 1;
+				val = value;
+			}
+		
+			newUrl = newUrl + key + "=" + val + "&";
+		}		
+	}
+
+	if (!found) 
+		newUrl = newUrl + param + "=" + value;
+	else
+		newUrl = newUrl.substr(0,newUrl.length-1);
+	
+	return newUrl;
+}
+

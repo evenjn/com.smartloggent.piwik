@@ -212,7 +212,7 @@ class Piwik_SmartLoggent extends Piwik_Plugin
 	
 	public function addMenu()
 	{
-		Piwik_AddMenu('LOC_SL_Menu', '', array('module' => 'SmartLoggent', 'action' => 'searchPhraseOverview'), true , 30);
+		Piwik_AddMenu('LOC_SL_Menu', '', array('module' => 'SmartLoggent', 'action' => 'overview'), true , 30);
 		$subMenus = array
 		(
 			'LOC_SL_SubmenuOverview' => 'Overview',	
