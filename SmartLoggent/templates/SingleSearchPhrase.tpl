@@ -1,6 +1,20 @@
 <link rel="stylesheet" type="text/css" href="plugins/SmartLoggent/templates/sl.css" />
 <script src="plugins/SmartLoggent/templates/sl.js" />
 
+{literal}
+<script>
+function showSingleClasses(classid_str, class_str) {
+	newurl = {/literal}'{$singleClassUrl}'{literal} + "&class=" + class_str + "&classid=" + classid_str; 
+	document.location = newurl;
+}
+
+function showSubClasses(classid_str, class_str) {
+	newurl = {/literal}'{$subClassUrl}'{literal} + "&class=" + class_str + "&classid=" + classid_str; 
+	document.location = newurl;
+}
+</script>
+{/literal}
+
 <div style="float: left;" class="listmenu">
 <ul>
 <li><a href="javascript:showDiv('main');">Evolution</a></li>

@@ -574,20 +574,23 @@ class Piwik_SmartLoggent_SQL
 		//
 		// to see the final query: echo $query['sql'];
 		//
-
-// 			if(Piwik_SmartLoggent_SegmentEditor::featureIsSet(Piwik_SmartLoggent_API::SEG_NAMEDENTITYTYPE, Piwik_Common::getRequestVar('segment', false, 'string')))
-// 			{
-// 		Piwik::smartlog($query['sql']);
-// 		foreach ($query['bind'] as $key => $value)
-// 			Piwik::smartlog("$key: $value");
-// 				foreach ($query['bind'] as $key => $value)
-// 					{
-// 						Piwik::smartlog("key is $key, value is $value");
-// 					}
-// 			}
+		
+ 			if(Piwik_SmartLoggent_SegmentEditor::featureIsSet(Piwik_SmartLoggent_API::SEG_NAMEDENTITYTYPE, Piwik_Common::getRequestVar('segment', false, 'string')))
+ 			{
+ 		Piwik::smartlog($query['sql']);
+ 		foreach ($query['bind'] as $key => $value)
+ 			Piwik::smartlog("$key: $value");
+ 				foreach ($query['bind'] as $key => $value)
+ 					{
+ 						Piwik::smartlog("key is $key, value is $value");
+ 					}
+ 			}
 
 		$result = Zend_Registry::get('db')->query($query['sql'], $query['bind']);
 // 		Piwik::profileend($profiler);
+		Piwik::smartlog($query['sql']);
+		Piwik::smartlog("TEST");
+		
 		return $result;
 	}
 	

@@ -3,6 +3,17 @@
 
 <div style="float: left;" class="listmenu">
 
+{literal}
+<script>
+
+function showSingleSearchPhrase(phraseid_str, phrase_str) {
+	newurl = {/literal}'{$singleSearchPhraseUrl}'{literal} + "&phrase=" + phrase_str + "&phrase_id=" + phraseid_str; 
+	document.location = newurl;
+}
+
+</script>
+{/literal}
+
 <select id="lang" onChange="document.location=mixUrl(window.location, 'language', this.options[this.selectedIndex].value);" name="language">>
 {foreach from=$availableLanguages item=language}	
 	<option {if $languageValue == $language.value}selected{/if} value="{$language.value}">{$language.label}</option>
