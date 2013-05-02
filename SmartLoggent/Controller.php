@@ -500,6 +500,8 @@ public function classes()
 		$singleClusterMetrics = array();
 		$detailcharts = array();
 		
+		$view->singleSearchPhraseUrl = $this->getUrlForAction('singleSearchPhrase');
+		
 		foreach ($this->array_metrics as $metric) {
 			$result_singleClusterMetrics = $this->getGraph('getDataFiltered',
 				$metric,
@@ -708,7 +710,7 @@ public function classes()
 		$view->singleNEMetrics = $singleNEMetrics;
 		
 		$view->singleNEEvolution = $this->getGraph('getDataFiltered',
-				$metric,
+				Piwik_SmartLoggent_API::INDEX_NB_VISITS,
 				5,
 				array_merge($filter, array('SLNamedEntityType' => $neid)),
 				Piwik_SmartLoggent_API::DIM_NAMEDENTITY,
@@ -930,7 +932,7 @@ public function classes()
 		foreach ($this->array_metrics as $metric) {
 			$result_metrics = $this->getGraph('get',
 					$metric,
-					4,
+					2,
 					-1,
 					Piwik_SmartLoggent_API::DIM_LANGUAGE,
 					'graphVerticalBar'
@@ -938,7 +940,7 @@ public function classes()
 		
 			$result_detail_evolution_chart = $this->getGraph('get',
 					$metric,
-					4,
+					2,
 					-1,
 					Piwik_SmartLoggent_API::DIM_LANGUAGE,
 					'graphEvolution'
@@ -955,7 +957,7 @@ public function classes()
 		
 		$view->languageEvolution = $this->getGraph('get',
 			Piwik_SmartLoggent_API::INDEX_NB_VISITS,
-			4,
+			2,
 			-1,
 			Piwik_SmartLoggent_API::DIM_LANGUAGE,
 			'graphEvolution'

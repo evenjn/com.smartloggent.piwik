@@ -8,8 +8,8 @@ function showSingleCluster(cluster_str, cluster_id) {
 	document.location = newurl;
 	
 }
-{/literal}
 </script>
+{/literal}
 
 <div style="float: left;" class="listmenu" >
 
